@@ -1,13 +1,24 @@
-# 🎯 Anime Filler Checker v2
+# 🎯 Anime Filler Checker
 
-Chrome/Edge extension that **auto-detects** the anime and episode you're watching and shows a **floating badge directly on the page** — FILLER, CANON, MIXED, or ANIME CANON.
+Chrome/Edge extension that **auto-detects** the anime and episode you're watching and shows a **floating badge directly on the page** — FILLER ⛔, CANON ✅, MIXED ⚠️, or ANIME CANON 🔵.
 
-## What's New in v2
-- **On-page badge** — No need to open the popup! A floating badge appears automatically
-- **URL parsing** — Works with Turkish sites like `tranimeizle.io` (e.g. `/one-piece-50-bolum-izle`)
-- **No DOMParser** — Background uses regex parsing (fixes service worker crash)
-- **Draggable badge** — Move the badge anywhere on the page
-- **Better popup styling** — Glassmorphism dark UI
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/store_screenshot_1.png" width="400" alt="Popup - Auto Detection" />
+  <img src="screenshots/store_screenshot_2.png" width="400" alt="Popup - Filler Result" />
+</p>
+<p align="center">
+  <img src="screenshots/store_screenshot_3.png" width="600" alt="On-page floating badge" />
+</p>
+
+## Features
+- 🔍 **Auto-detect** — Detects anime name + episode number from the URL or page source
+- 🏷️ **On-page badge** — Floating badge appears automatically, no popup needed
+- 🖱️ **Draggable** — Move the badge anywhere on the page
+- 🔎 **Manual search** — Search any anime/episode from the popup
+- 🌐 **Wide support** — Works on Crunchyroll, 9anime, and most anime streaming sites
+- 💾 **Smart cache** — Results cached for 24h to minimize requests
 
 ## Install
 1. Unzip
