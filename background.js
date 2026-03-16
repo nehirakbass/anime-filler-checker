@@ -200,7 +200,14 @@ async function setCache(slug, data) {
   try {
     const stored = await chrome.storage.local.get(CACHE_KEY);
     const cache = stored[CACHE_KEY] || {};
-    cache[slug] = { data, ts: Date.now() };
+
+    // Evict expired entries to prevent unbounded growth
+    const now = Date.now();
+    for (const key of Object.keys(cache)) {
+      if (now - (cache[key].ts || 0) > CACHE_TTL) delete cache[key];
+    }
+
+    cache[slug] = { data, ts: now };
     await chrome.storage.local.set({ [CACHE_KEY]: cache });
   } catch {}
 }

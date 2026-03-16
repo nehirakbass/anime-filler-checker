@@ -446,17 +446,25 @@
   // Run after a short delay to let SPAs render
   setTimeout(autoCheck, 1500);
 
-  // Re-check on URL change (SPA navigation)
+  // Re-check on URL change (SPA navigation) — throttled
   let lastUrl = location.href;
+  let navTimer = null;
   const observer = new MutationObserver(() => {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
       const old = document.getElementById(BADGE_ID);
       if (old) old.remove();
-      setTimeout(autoCheck, 2000);
+      if (navTimer) clearTimeout(navTimer);
+      navTimer = setTimeout(autoCheck, 2000);
     }
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
 
   /* ═══════════════════════════════════════════════════════════════
    *  MESSAGE HANDLER — popup can also request info
