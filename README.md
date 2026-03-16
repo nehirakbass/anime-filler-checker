@@ -15,6 +15,7 @@ Chrome/Edge extension that **auto-detects** the anime and episode you're watchin
 ## Features
 - 🔍 **Auto-detect** — Detects anime name + episode number from the URL or page source
 - 🏷️ **On-page badge** — Floating badge appears automatically, no popup needed
+- ⭐ **MAL Score** — Shows MyAnimeList rating, member count, and status via Jikan API
 - 🖱️ **Draggable** — Move the badge anywhere on the page
 - 🔎 **Manual search** — Search any anime/episode from the popup
 - 🌐 **Wide support** — Works on Crunchyroll, 9anime, and most anime streaming sites
@@ -30,3 +31,8 @@ Chrome/Edge extension that **auto-detects** the anime and episode you're watchin
 1. Visit any anime streaming page
 2. Badge auto-appears in top-right corner showing FILLER/CANON status
 3. Click extension icon for manual override + details
+4. MAL score, member count, and airing status shown alongside the result
+
+## Data Sources
+- **Filler data** — [AnimeFillerList.com](https://www.animefillerlist.com)
+- **Anime scores & info** — [MyAnimeList](https://myanimelist.net) via [Jikan API](https://jikan.moe)

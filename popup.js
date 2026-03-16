@@ -87,6 +87,29 @@ function renderResult(data) {
   const ep   = data.episode;
   const type = ep?.type || "unknown";
   const v    = VERDICT[type] || VERDICT.unknown;
+  const mal  = data.mal;
+
+  let malHTML = "";
+  if (mal && mal.score) {
+    const members = mal.members ? `${(mal.members / 1000).toFixed(0)}K members` : "";
+    const status  = mal.status || "";
+    const totalEp = mal.episodes ? `${mal.episodes} eps` : "";
+    const meta    = [status, totalEp].filter(Boolean).join(" · ");
+
+    malHTML = `
+      <div class="mal-row">
+        <div class="mal-score-box">
+          <span class="mal-star">★</span>
+          <span class="mal-score">${mal.score.toFixed(2)}</span>
+        </div>
+        <div class="mal-meta">
+          <span class="mal-members">${members}</span>
+          ${meta ? `<span class="mal-info">${esc(meta)}</span>` : ""}
+        </div>
+        ${mal.mal_url ? `<a class="mal-link" href="${esc(mal.mal_url)}" target="_blank">MAL ↗</a>` : ""}
+      </div>
+    `;
+  }
 
   $("#results").innerHTML = `
     <div class="result-card">
@@ -97,6 +120,7 @@ function renderResult(data) {
           <div class="result-ep">Episode ${data.queriedEpisode}${ep?.title ? " — " + esc(ep.title) : ""}</div>
         </div>
       </div>
+      ${malHTML}
       <div class="result-verdict">
         <span class="verdict-pill ${type}">${v.icon} ${v.label}</span>
         <div class="verdict-desc">${v.desc}</div>

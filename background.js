@@ -213,6 +213,59 @@ async function setCache(slug, data) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+ *  JIKAN (MAL) API — Fetch anime score
+ * ═══════════════════════════════════════════════════════════════ */
+const MAL_CACHE_KEY = "mal_cache";
+
+async function fetchMALScore(animeName) {
+  const cacheKey = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  // Check cache first
+  try {
+    const stored = await chrome.storage.local.get(MAL_CACHE_KEY);
+    const cache = stored[MAL_CACHE_KEY] || {};
+    const entry = cache[cacheKey];
+    if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  } catch {}
+
+  try {
+    const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&limit=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const anime = json.data?.[0];
+    if (!anime) return null;
+
+    const result = {
+      score: anime.score,
+      scored_by: anime.scored_by,
+      members: anime.members,
+      status: anime.status,
+      episodes: anime.episodes,
+      image: anime.images?.jpg?.small_image_url || null,
+      mal_url: anime.url,
+    };
+
+    // Cache it
+    try {
+      const stored = await chrome.storage.local.get(MAL_CACHE_KEY);
+      const cache = stored[MAL_CACHE_KEY] || {};
+      const now = Date.now();
+      for (const key of Object.keys(cache)) {
+        if (now - (cache[key].ts || 0) > CACHE_TTL) delete cache[key];
+      }
+      cache[cacheKey] = { data: result, ts: now };
+      await chrome.storage.local.set({ [MAL_CACHE_KEY]: cache });
+    } catch {}
+
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
  *  MESSAGE HANDLER
  * ═══════════════════════════════════════════════════════════════ */
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -230,6 +283,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           }
         }
 
+        // Fetch MAL score in parallel (don't block filler result)
+        let mal = null;
+        try {
+          mal = await fetchMALScore(data.showTitle || animeName);
+        } catch {}
+
         const ep = data.episodes[episode];
         sendResponse({
           success: true,
@@ -238,6 +297,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           totalEpisodes: data.totalEpisodes,
           episode: ep || null,
           queriedEpisode: episode,
+          mal,
         });
       } catch (err) {
         sendResponse({ success: false, error: err.message });

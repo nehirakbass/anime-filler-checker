@@ -4,7 +4,7 @@
 Anime Filler Checker — Skip the Filler!
 
 ## Short Description (132 chars max)
-Auto-detects anime & episode from any streaming site and shows if it's filler, canon, or mixed — right on the page.
+Auto-detects anime & episode, shows filler/canon badge on page + MAL score. Works on Crunchyroll, 9anime & more.
 
 ## Detailed Description
 Never waste time on filler episodes again!
@@ -16,12 +16,15 @@ Anime Filler Checker automatically detects the anime name and episode number fro
 ⚠️ MIXED — Mix of canon and filler content
 🔵 ANIME CANON — Anime-original but part of the story
 
+⭐ NEW in v2.2: MyAnimeList score is now shown on the badge and popup — see the MAL rating at a glance!
+
 ★ KEY FEATURES:
 • Auto-detection — Works on Crunchyroll, HiAnime, GoGoAnime, AnimePahe, AniWave, and many more
 • On-page badge — No need to open the popup, see the verdict instantly
 • URL parsing — Works with international sites (Turkish, Spanish, etc.)
 • Manual override — Type any anime name & episode number
 • Smart search — Fuzzy matching finds anime even with imperfect names
+• MAL Score — MyAnimeList rating shown on badge and popup
 • 24-hour cache — Instant results on repeat visits
 • Draggable badge — Move it anywhere on the page
 • Beautiful dark UI — Clean, modern popup interface
@@ -43,6 +46,7 @@ Works on virtually any anime streaming site. Has dedicated parsers for:
 4. Click the extension icon for manual lookup or more details
 
 Data sourced from the amazing community at AnimeFillerList.com.
+Anime scores & info provided by MyAnimeList via the Jikan API.
 
 This extension is open source and collects no personal data.
 
