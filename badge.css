@@ -1,0 +1,267 @@
+/* ═══════════════════════════════════════════════════════════════
+ *  Anime Filler Checker v2 — On-page floating badge
+ *  Split-pill design: colored icon left + tinted info right
+ * ═══════════════════════════════════════════════════════════════ */
+
+#afc-floating-badge {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-16px) scale(0.92);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+}
+
+#afc-floating-badge.afc-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#afc-floating-badge.afc-hidden {
+  opacity: 0 !important;
+  transform: translateY(-16px) scale(0.9) !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ─── Inner container (split pill) ────────── */
+.afc-badge-inner {
+  display: flex;
+  align-items: stretch;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  min-width: 200px;
+  max-width: 380px;
+  position: relative;
+}
+
+.afc-badge-inner:active {
+  cursor: grabbing;
+}
+
+/* ─── Left: Icon section ──────────────────── */
+.afc-badge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  font-size: 20px;
+  min-width: 50px;
+  min-height: 48px;
+  line-height: 1;
+}
+
+/* ─── Right: Content section ──────────────── */
+.afc-badge-content {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.afc-badge-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.03em;
+}
+
+.afc-badge-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Close button (appears on hover) ─────── */
+.afc-badge-close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: rgba(20, 20, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.65);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.15s, opacity 0.25s;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  line-height: 1;
+  padding: 0;
+}
+
+#afc-floating-badge:hover .afc-badge-close {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.afc-badge-close:hover {
+  background: rgba(255, 55, 75, 0.9);
+  color: #fff;
+  transform: scale(1.15);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ *  TYPE THEMES
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ── CANON (Green) ────────────────────────── */
+.afc-type-canon .afc-badge-inner {
+  border: 1px solid rgba(0, 200, 130, 0.2);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-canon .afc-badge-icon {
+  background: linear-gradient(145deg, #00c882, #00e8a0);
+}
+.afc-type-canon .afc-badge-content {
+  background: rgba(0, 200, 130, 0.07);
+}
+.afc-type-canon .afc-badge-title {
+  color: #00e09e;
+}
+.afc-type-canon .afc-badge-sub {
+  color: rgba(200, 220, 210, 0.55);
+}
+
+/* ── FILLER (Red) ─────────────────────────── */
+.afc-type-filler .afc-badge-inner {
+  border: 1px solid rgba(255, 65, 85, 0.25);
+  background: rgba(8, 12, 16, 0.92);
+  animation: afc-filler-glow 2.5s ease-in-out infinite;
+}
+.afc-type-filler .afc-badge-icon {
+  background: linear-gradient(145deg, #e83050, #ff4d6a);
+}
+.afc-type-filler .afc-badge-content {
+  background: rgba(255, 65, 85, 0.06);
+}
+.afc-type-filler .afc-badge-title {
+  color: #ff5070;
+}
+.afc-type-filler .afc-badge-sub {
+  color: rgba(220, 200, 205, 0.55);
+}
+@keyframes afc-filler-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 65, 85, 0); }
+  50%      { box-shadow: 0 0 22px 4px rgba(255, 65, 85, 0.25); }
+}
+
+/* ── MIXED (Orange/Amber) ─────────────────── */
+.afc-type-mixed .afc-badge-inner {
+  border: 1px solid rgba(255, 170, 50, 0.2);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-mixed .afc-badge-icon {
+  background: linear-gradient(145deg, #e89420, #ffb347);
+}
+.afc-type-mixed .afc-badge-content {
+  background: rgba(255, 170, 50, 0.06);
+}
+.afc-type-mixed .afc-badge-title {
+  color: #ffb347;
+}
+.afc-type-mixed .afc-badge-sub {
+  color: rgba(220, 210, 195, 0.55);
+}
+
+/* ── ANIME CANON (Blue) ───────────────────── */
+.afc-type-anime_canon .afc-badge-inner {
+  border: 1px solid rgba(80, 150, 255, 0.2);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-anime_canon .afc-badge-icon {
+  background: linear-gradient(145deg, #3278dc, #5ba8ff);
+}
+.afc-type-anime_canon .afc-badge-content {
+  background: rgba(80, 150, 255, 0.06);
+}
+.afc-type-anime_canon .afc-badge-title {
+  color: #5ba8ff;
+}
+.afc-type-anime_canon .afc-badge-sub {
+  color: rgba(195, 210, 230, 0.55);
+}
+
+/* ── UNKNOWN (Gray) ───────────────────────── */
+.afc-type-unknown .afc-badge-inner {
+  border: 1px solid rgba(100, 110, 130, 0.15);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-unknown .afc-badge-icon {
+  background: linear-gradient(145deg, #4a4e5c, #636878);
+}
+.afc-type-unknown .afc-badge-content {
+  background: rgba(100, 110, 130, 0.05);
+}
+.afc-type-unknown .afc-badge-title {
+  color: #8b90a5;
+}
+.afc-type-unknown .afc-badge-sub {
+  color: rgba(200, 200, 210, 0.45);
+}
+
+/* ── LOADING (Purple pulse) ───────────────── */
+.afc-type-loading .afc-badge-inner {
+  border: 1px solid rgba(124, 92, 231, 0.2);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-loading .afc-badge-icon {
+  background: linear-gradient(145deg, #7c5ce7, #a29bfe);
+  animation: afc-loading-pulse 1.4s ease-in-out infinite;
+}
+@keyframes afc-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+.afc-type-loading .afc-badge-content {
+  background: rgba(124, 92, 231, 0.05);
+}
+.afc-type-loading .afc-badge-title {
+  color: #a29bfe;
+}
+.afc-type-loading .afc-badge-sub {
+  color: rgba(200, 195, 220, 0.45);
+}
+
+/* ── ERROR (Muted dark) ───────────────────── */
+.afc-type-error .afc-badge-inner {
+  border: 1px solid rgba(80, 65, 95, 0.2);
+  background: rgba(8, 12, 16, 0.92);
+}
+.afc-type-error .afc-badge-icon {
+  background: linear-gradient(145deg, #3a3040, #4e4058);
+}
+.afc-type-error .afc-badge-content {
+  background: rgba(60, 50, 70, 0.06);
+}
+.afc-type-error .afc-badge-title {
+  color: #998fa5;
+}
+.afc-type-error .afc-badge-sub {
+  color: rgba(200, 195, 210, 0.4);
+}
