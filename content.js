@@ -162,6 +162,7 @@
     const patterns = [
       /^(.+?)\s*[-:]?\s*(?:Episode|Ep\.?|Bölüm|Bolum)\s*(\d+)/i,
       /^(.+?)\s*[-:]?\s*S\d+\s*E(\d+)/i,
+      /^(.+?)\s*[-:]?\s*E(\d+)\s*[-–—:]/i,
       /^(.+?)\s*[-:]?\s*(\d+)\s*\.?\s*(?:Bölüm|Bolum|Episode|Ep)/i,
       /^(.+?)\s+[-:]\s*(\d{1,4})\s*(?:[-:]|$)/,
     ];
@@ -184,16 +185,84 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
+   *  META TAG PARSER — fallback for sites with good meta tags
+   * ═══════════════════════════════════════════════════════════════ */
+  function extractFromMeta() {
+    const metas = [
+      document.querySelector('meta[property="og:title"]')?.content,
+      document.querySelector('meta[name="title"]')?.content,
+      document.querySelector('meta[property="og:description"]')?.content,
+    ];
+    for (const raw of metas) {
+      if (!raw) continue;
+      const cleaned = raw.replace(/[\|–—]/g, "-").replace(/\s+/g, " ").trim();
+      const m = cleaned.match(/(.+?)\s*[-:]?\s*(?:Episode|Ep\.?|E)(\d+)/i);
+      if (m) {
+        let name = m[1].replace(/[-:]\s*$/, "").replace(/\b(Watch|Online|Free|HD|Sub|Dub|Anime)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+        const ep = parseInt(m[2], 10);
+        if (isValidAnimeName(name) && isValidEpisode(ep)) {
+          return { animeName: name, episode: ep };
+        }
+      }
+    }
+    return null;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
    *  DOM EXTRACTORS — site-specific
    * ═══════════════════════════════════════════════════════════════ */
   const siteExtractors = {
     "crunchyroll.com": () => {
-      const series =
-        document.querySelector('a.show-title-link, [data-testid="series-title"]')?.textContent?.trim() || "";
-      const title =
-        document.querySelector('h1.hero-heading-line, [data-testid="episode-title"]')?.textContent || "";
-      const epMatch = title.match(/(?:E|Episode)\s*(\d+)/i);
+      // Series name: try multiple selectors (Crunchyroll updates layout frequently)
+      const seriesSelectors = [
+        'a.show-title-link',
+        '[data-testid="series-title"]',
+        'a[href*="/series/"]',
+        '.current-media-parent-ref',
+        'h4 a[href*="/series/"]',
+        '.hero-heading-line a',
+      ];
+      let series = "";
+      for (const sel of seriesSelectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          const txt = el.textContent.trim();
+          if (txt && txt.length > 1 && txt.length < 100) { series = txt; break; }
+        }
+      }
+
+      // Episode title/number: try multiple selectors
+      const titleSelectors = [
+        'h1.hero-heading-line',
+        '[data-testid="episode-title"]',
+        '.erc-current-media-info h1',
+        'h1[class*="title"]',
+        'h1',
+      ];
+      let title = "";
+      for (const sel of titleSelectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          const txt = el.textContent.trim();
+          if (txt && /(?:E|EP|Episode)\s*\d+/i.test(txt)) { title = txt; break; }
+        }
+      }
+
+      // Also try meta tags
+      if (!title) {
+        const meta = document.querySelector('meta[property="og:title"], meta[name="title"]');
+        if (meta) title = meta.content || "";
+      }
+
+      const epMatch = title.match(/(?:E|EP|Episode)\s*(\d+)/i);
       if (series && epMatch) return { animeName: series, episode: parseInt(epMatch[1], 10) };
+
+      // Last resort: try document.title
+      if (series) {
+        const dtMatch = document.title.match(/(?:E|EP|Episode)\s*(\d+)/i);
+        if (dtMatch) return { animeName: series, episode: parseInt(dtMatch[1], 10) };
+      }
+
       return null;
     },
     "hianime.to": zoroExtract,
@@ -239,6 +308,10 @@
     // 3. Title tag
     const fromTitle = extractFromTitle();
     if (fromTitle?.animeName && fromTitle?.episode) return fromTitle;
+
+    // 4. Meta tags (og:title, etc.)
+    const fromMeta = extractFromMeta();
+    if (fromMeta?.animeName && fromMeta?.episode) return fromMeta;
 
     return { animeName: "", episode: null };
   }
