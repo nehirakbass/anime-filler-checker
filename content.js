@@ -332,7 +332,6 @@
           <div class="afc-badge-title"></div>
           <div class="afc-badge-sub"></div>
         </div>
-        <div class="afc-badge-score" style="display:none"></div>
       </div>
       <button class="afc-badge-close" title="Close">✕</button>
     `;
@@ -367,7 +366,7 @@
     return el;
   }
 
-  function showBadge(type, animeName, episode, epTitle, mal) {
+  function showBadge(type, animeName, episode, epTitle) {
     const badge = createBadge();
     badge.className = "";
     badge.classList.add("afc-type-" + type, "afc-visible");
@@ -384,14 +383,6 @@
     badge.querySelector(".afc-badge-icon").textContent = c.icon;
     badge.querySelector(".afc-badge-title").textContent = `EP ${episode} — ${c.label}`;
     badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
-
-    const scoreEl = badge.querySelector(".afc-badge-score");
-    if (mal && mal.score) {
-      scoreEl.textContent = `★ ${mal.score.toFixed(2)}`;
-      scoreEl.style.display = "";
-    } else {
-      scoreEl.style.display = "none";
-    }
   }
 
   function showBadgeLoading(animeName, episode) {
@@ -447,7 +438,7 @@
         }
         const ep = response.episode;
         const type = ep?.type || "unknown";
-        showBadge(type, response.showTitle || info.animeName, info.episode, ep?.title || "", response.mal);
+        showBadge(type, response.showTitle || info.animeName, info.episode, ep?.title || "");
       }
     );
   }
