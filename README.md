@@ -5,11 +5,7 @@ Chrome/Edge extension that **auto-detects** the anime and episode you're watchin
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/store_screenshot_1.png" width="400" alt="Popup - Auto Detection" />
-  <img src="screenshots/store_screenshot_2.png" width="400" alt="Popup - Filler Result" />
-</p>
-<p align="center">
-  <img src="screenshots/store_screenshot_3.png" width="600" alt="On-page floating badge" />
+  <img src="screenshots/promo-hero.png" width="800" alt="Anime Filler Checker - Skip the filler, watch what matters" />
 </p>
 
 ## Features
