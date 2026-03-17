@@ -218,7 +218,11 @@ async function setCache(slug, data) {
 const MAL_CACHE_KEY = "mal_cache";
 
 async function fetchMALScore(animeName) {
-  const cacheKey = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  // Clean common suffixes from AnimeFillerList titles
+  const cleanName = animeName
+    .replace(/\s*(Filler List|Episode List|Filler Guide)\s*$/i, "")
+    .trim();
+  const cacheKey = cleanName.toLowerCase().replace(/[^a-z0-9]/g, "");
 
   // Check cache first
   try {
@@ -229,7 +233,7 @@ async function fetchMALScore(animeName) {
   } catch {}
 
   try {
-    const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&limit=1`;
+    const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(cleanName)}&type=tv&limit=1`;
     const res = await fetch(url);
     if (!res.ok) return null;
 
