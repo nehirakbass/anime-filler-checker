@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
-const CHROME_URL = '#'
-const FIREFOX_URL = '#'
+const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/TBD'
+const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
 
 export default function Home() {
   return (
@@ -169,15 +170,54 @@ export default function Home() {
           <div className="container">
             <div className="cta-box">
               <h2>Stop Watching Filler</h2>
-              <p>Join thousands of anime fans who never waste an episode again.</p>
-              <div className="cta-buttons">
-                <a href={CHROME_URL} className="btn-primary">
-                  <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome" width="20" height="20" />
-                  Add to Chrome
-                </a>
-                <a href={FIREFOX_URL} className="btn-primary btn-firefox">
-                  <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" width="20" height="20" />
-                  Add to Firefox
+              <p>Get notified when the extension launches on Chrome &amp; Firefox.</p>
+              
+              {/* Waitlist Form */}
+              <form className="waitlist-form" onSubmit={async (e) => {
+                e.preventDefault()
+                const email = e.target.email.value
+                if (!email) return
+                
+                const btn = e.target.querySelector('button')
+                const originalText = btn.textContent
+                btn.disabled = true
+                btn.textContent = 'Joining...'
+                
+                try {
+                  const res = await fetch('/api/waitlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                  })
+                  
+                  if (res.ok) {
+                    alert('Thanks! We\'ll notify you when we launch 🚀')
+                    e.target.reset()
+                  } else {
+                    throw new Error('Failed')
+                  }
+                } catch (err) {
+                  alert('Something went wrong. Try again?')
+                } finally {
+                  btn.disabled = false
+                  btn.textContent = originalText
+                }
+              }}>
+                <input 
+                  type="email" 
+                  name="email"
+                  placeholder="your@email.com" 
+                  required 
+                  className="waitlist-input"
+                />
+                <button type="submit" className="btn-primary waitlist-btn">
+                  Join Waitlist
+                </button>
+              </form>
+
+              <div className="cta-buttons" style={{ marginTop: '20px' }}>
+                <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
+                  ⭐ View on GitHub
                 </a>
               </div>
               <p className="cta-note">Free &amp; open source — no ads, no tracking, no signup.</p>
@@ -202,8 +242,8 @@ export default function Home() {
             <a href="https://jikan.moe" target="_blank" style={{ color: 'var(--text2)' }}>Jikan API</a>.
           </div>
           <div className="footer-copy" style={{ marginTop: '8px' }}>
-            Want to contact? Check out my personal site at{' '}
-            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)' }}>nehirakbas.com</a>
+            Built by{' '}
+            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>Nehir Akbaş</a>
           </div>
         </div>
       </footer>

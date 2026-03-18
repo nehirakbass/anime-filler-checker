@@ -415,7 +415,42 @@ nav {
   position: relative;
   opacity: 0.6;
 }
-
+/* ─── Waitlist Form ──────────────────────── */
+.waitlist-form {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+  margin: 24px auto 0;
+  flex-wrap: wrap;
+}
+.waitlist-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+.waitlist-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 108, 255, 0.1);
+}
+.waitlist-input::placeholder {
+  color: var(--text2);
+  opacity: 0.5;
+}
+.waitlist-btn {
+  padding: 14px 32px;
+  white-space: nowrap;
+}
+.waitlist-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 /* â”€â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 footer {
   border-top: 1px solid var(--border);
