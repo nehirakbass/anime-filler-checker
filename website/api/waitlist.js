@@ -24,11 +24,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Add contact to Resend
+    // Add contact to Resend + segment in one call
     try {
       await resend.contacts.create({
         email: email,
         unsubscribed: false,
+        segments: SEGMENT_ID ? [{ id: SEGMENT_ID }] : [],
       });
     } catch (contactError) {
       // Ignore if contact already exists
@@ -36,16 +37,6 @@ export default async function handler(req, res) {
           !contactError.message?.includes('Contact already')) {
         console.error('Contact creation error:', contactError);
       }
-    }
-
-    // Add contact to segment (works even if contact already exists)
-    try {
-      await resend.contacts.segments.add({
-        email: email,
-        segmentId: SEGMENT_ID,
-      });
-    } catch (segmentError) {
-      console.error('Segment addition error:', segmentError);
     }
 
     // Send notification to yourself about new waitlist signup
