@@ -24,18 +24,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Add contact to Resend + segment in one call
+    // Step 1: Try to create contact with segment
+    let alreadyExists = false;
     try {
-      await resend.contacts.create({
+      const result = await resend.contacts.create({
         email: email,
         unsubscribed: false,
         segments: SEGMENT_ID ? [{ id: SEGMENT_ID }] : [],
       });
+      console.log('Contact created:', JSON.stringify(result));
     } catch (contactError) {
-      // Ignore if contact already exists
-      if (!contactError.message?.includes('already exists') && 
-          !contactError.message?.includes('Contact already')) {
-        console.error('Contact creation error:', contactError);
+      console.error('Contact create error:', JSON.stringify(contactError));
+      alreadyExists = true;
+    }
+
+    // Step 2: If contact already existed, add to segment separately
+    if (alreadyExists && SEGMENT_ID) {
+      try {
+        const segResult = await resend.contacts.segments.add({
+          email: email,
+          segmentId: SEGMENT_ID,
+        });
+        console.log('Segment add result:', JSON.stringify(segResult));
+      } catch (segError) {
+        console.error('Segment add error:', JSON.stringify(segError));
       }
     }
 
