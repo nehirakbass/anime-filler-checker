@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const SEGMENT_ID = process.env.RESEND_SEGMENT_ID;
 
 export default async function handler(req, res) {
   // CORS headers
@@ -23,6 +24,36 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Add contact to Resend
+    let contactId;
+    try {
+      const contact = await resend.contacts.create({
+        email: email,
+        unsubscribed: false,
+      });
+      contactId = contact.data?.id;
+    } catch (contactError) {
+      // If contact already exists, try to get it
+      if (contactError.message?.includes('already exists') || 
+          contactError.message?.includes('Contact already')) {
+        console.log('Contact already exists, skipping segment add');
+      } else {
+        console.error('Contact creation error:', contactError);
+      }
+    }
+
+    // Add contact to segment if we have the contact ID
+    if (contactId) {
+      try {
+        await resend.contacts.update({
+          id: contactId,
+          segmentIds: [SEGMENT_ID]
+        });
+      } catch (segmentError) {
+        console.error('Segment addition error:', segmentError);
+      }
+    }
+
     // Send notification to yourself about new waitlist signup
     await resend.emails.send({
       from: 'Anime Filler Checker <onboarding@resend.dev>',
