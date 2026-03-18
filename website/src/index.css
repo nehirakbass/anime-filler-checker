@@ -451,6 +451,58 @@ nav {
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* ─── Toast Notification ──────────────── */
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  padding: 16px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 14px;
+}
+.toast-success .toast-icon {
+  background: rgba(0, 224, 158, 0.15);
+  color: var(--canon);
+}
+.toast-error .toast-icon {
+  background: rgba(255, 77, 106, 0.15);
+  color: var(--filler);
+}
+.toast-message {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
 /* â”€â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 footer {
   border-top: 1px solid var(--border);
@@ -536,6 +588,11 @@ footer {
   .features-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .cta-box { padding: 40px 24px; }
-  .cta-box h2 { font-size: 24px; }
-}
+  .cta-box h2 { font-size: 24px; }  
+  /* Toast responsive */
+  .toast {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+  }}
 

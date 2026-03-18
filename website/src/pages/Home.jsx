@@ -5,11 +5,28 @@ const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checke
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
 
 export default function Home() {
+  const [toast, setToast] = useState(null)
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
+
   return (
     <>
       <div className="glow-1" />
       <div className="glow-2" />
       <div className="glow-3" />
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          <div className="toast-content">
+            <span className="toast-icon">{toast.type === 'success' ? '✓' : '✕'}</span>
+            <span className="toast-message">{toast.message}</span>
+          </div>
+        </div>
+      )}
 
       {/* Nav */}
       <nav>
@@ -191,13 +208,13 @@ export default function Home() {
                   })
                   
                   if (res.ok) {
-                    alert('Thanks! We\'ll notify you when we launch 🚀')
+                    showToast('Thanks! We\'ll notify you when we launch 🚀')
                     e.target.reset()
                   } else {
                     throw new Error('Failed')
                   }
                 } catch (err) {
-                  alert('Something went wrong. Try again?')
+                  showToast('Something went wrong. Try again?', 'error')
                 } finally {
                   btn.disabled = false
                   btn.textContent = originalText
