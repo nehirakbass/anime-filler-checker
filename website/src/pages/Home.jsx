@@ -1,0 +1,212 @@
+import { Link } from 'react-router-dom'
+
+const CHROME_URL = '#'
+const FIREFOX_URL = '#'
+
+export default function Home() {
+  return (
+    <>
+      <div className="glow-1" />
+      <div className="glow-2" />
+      <div className="glow-3" />
+
+      {/* Nav */}
+      <nav>
+        <div className="nav-inner">
+          <Link to="/" className="nav-brand">
+            <img src="/icon48.png" alt="Anime Filler Checker" />
+            <span>Anime Filler Checker</span>
+          </Link>
+          <ul className="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><Link to="/privacy">Privacy</Link></li>
+            <li><a href="#install" className="nav-cta">Install Free</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main>
+        {/* Hero */}
+        <section className="hero">
+          <div className="container">
+            <div className="hero-badge">✨ Fully Open Source · Works on Any Platform</div>
+            <h1>
+              Skip the Filler,<br />
+              <span className="gradient">Watch What Matters</span>
+            </h1>
+            <p>
+              Auto-detects the anime &amp; episode you're watching and shows a floating badge
+              — FILLER, CANON, or MIXED — right on the page. No more tab-switching.
+              <br /><strong style={{ color: 'var(--text)' }}>Fully open source.</strong> Works on any streaming platform.
+            </p>
+            <div className="hero-buttons" id="install">
+              <a href={CHROME_URL} className="btn-primary">
+                <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome" width="20" height="20" />
+                Add to Chrome
+              </a>
+              <a href={FIREFOX_URL} className="btn-primary btn-firefox">
+                <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" width="20" height="20" />
+                Add to Firefox
+              </a>
+              <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
+                ⭐ View on GitHub
+              </a>
+            </div>
+
+            {/* Badge demo */}
+            <div className="badge-demo">
+              <span className="demo-pill canon">✅ CANON</span>
+              <span className="demo-pill filler">⛔ FILLER</span>
+              <span className="demo-pill mixed">⚠️ MIXED</span>
+              <span className="demo-pill anime-canon">🔵 ANIME CANON</span>
+            </div>
+
+            {/* Screenshot */}
+            <div className="hero-image">
+              <img src="/hero-screenshot.png" alt="Anime Filler Checker showing a CANON badge on an anime streaming page" loading="lazy" />
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="features" id="features">
+          <div className="container">
+            <h2 className="section-title">Everything You Need</h2>
+            <p className="section-sub">One extension to never sit through filler again.</p>
+
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-icon">🔍</div>
+                <h3>Auto-Detect</h3>
+                <p>Detects anime name and episode number from the URL, page title, and DOM — no manual input needed.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🏷️</div>
+                <h3>On-Page Badge</h3>
+                <p>A floating badge appears instantly on the page. Draggable, dismissible, and beautifully themed per verdict.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">⭐</div>
+                <h3>MAL Score</h3>
+                <p>See MyAnimeList rating, member count, and airing status without leaving the page.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🌐</div>
+                <h3>Works Everywhere</h3>
+                <p>Crunchyroll, HiAnime, GoGoAnime, AnimePahe, AniWave — and any site with anime in the URL or title.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🔎</div>
+                <h3>Manual Search</h3>
+                <p>Type any anime name and episode in the popup for a quick manual lookup.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">💾</div>
+                <h3>Smart Cache</h3>
+                <p>Filler data cached for 14 days, MAL scores for 5 days. Instant results on repeat visits, zero wasted requests.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="how" id="how-it-works">
+          <div className="container">
+            <h2 className="section-title">How It Works</h2>
+            <p className="section-sub">Three seconds from install to verdict.</p>
+
+            <div className="steps">
+              <div className="step">
+                <div className="step-num">1</div>
+                <h3>Install the Extension</h3>
+                <p>Add to Chrome or Firefox in one click. No account, no signup, no permissions you don't need.</p>
+              </div>
+              <div className="step">
+                <div className="step-num">2</div>
+                <h3>Watch Any Anime</h3>
+                <p>Go to your favorite streaming site and play an episode like you normally would.</p>
+              </div>
+              <div className="step">
+                <div className="step-num">3</div>
+                <h3>See the Badge</h3>
+                <p>A floating badge appears in the corner — CANON, FILLER, or MIXED. That's it.</p>
+              </div>
+              <div className="step">
+                <div className="step-num">4</div>
+                <h3>Skip or Watch</h3>
+                <p>Filler? Skip it. Canon? Enjoy. You just saved yourself hours of wasted episodes.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sites */}
+        <section className="sites">
+          <div className="container">
+            <div className="sites-label">Works on any streaming platform</div>
+            <div className="sites-list">
+              <span>Crunchyroll</span>
+              <span>HiAnime</span>
+              <span>GoGoAnime</span>
+              <span>AnimePahe</span>
+              <span>AniWave</span>
+              <span>KickAssAnime</span>
+              <span>+ any site</span>
+            </div>
+            <p style={{ color: 'var(--text2)', fontSize: '14px', marginTop: '20px' }}>
+              Doesn't work on your site?{' '}
+              <a href="https://github.com/nehirakbass/anime-filler-checker/issues" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
+                Let us know
+              </a>
+              {' '}— we'll add support.
+            </p>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="cta">
+          <div className="container">
+            <div className="cta-box">
+              <h2>Stop Watching Filler</h2>
+              <p>Join thousands of anime fans who never waste an episode again.</p>
+              <div className="cta-buttons">
+                <a href={CHROME_URL} className="btn-primary">
+                  <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome" width="20" height="20" />
+                  Add to Chrome
+                </a>
+                <a href={FIREFOX_URL} className="btn-primary btn-firefox">
+                  <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" width="20" height="20" />
+                  Add to Firefox
+                </a>
+              </div>
+              <p className="cta-note">Free &amp; open source — no ads, no tracking, no signup.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer>
+        <div className="container">
+          <div className="footer-links">
+            <Link to="/privacy">Privacy Policy</Link>
+            <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>
+            <a href={CHROME_URL}>Chrome Web Store</a>
+            <a href={FIREFOX_URL}>Firefox Add-ons</a>
+          </div>
+          <div className="footer-copy" style={{ marginTop: '12px' }}>
+            Powered by the great community at{' '}
+            <a href="https://www.animefillerlist.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>AnimeFillerList.com</a>
+            {' '}&amp;{' '}
+            <a href="https://jikan.moe" target="_blank" style={{ color: 'var(--text2)' }}>Jikan API</a>.
+          </div>
+          <div className="footer-copy" style={{ marginTop: '8px' }}>
+            Want to contact? Check out my personal site at{' '}
+            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)' }}>nehirakbas.com</a>
+          </div>
+        </div>
+      </footer>
+    </>
+  )
+}
