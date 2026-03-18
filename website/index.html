@@ -704,10 +704,10 @@
   </footer>
 
   <!-- Vercel Analytics -->
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  <script type="module">
+    import { inject } from 'https://cdn.jsdelivr.net/npm/@vercel/analytics@1/dist/module/index.js';
+    inject();
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>
 
   <script>
     // Replace with actual store URLs when approved
