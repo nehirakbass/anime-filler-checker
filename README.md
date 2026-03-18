@@ -30,12 +30,9 @@ Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
 4. Done!
 
 ### Firefox
-1. Download or clone this repo
-2. Go to `about:debugging#/runtime/this-firefox`
-3. Click **Load Temporary Add-on** → select `firefox-build/manifest.json`
-4. Done! *(Note: temporary add-ons are removed when Firefox closes)*
-
-> **Tip:** For a permanent install, get it from [Firefox Add-ons (AMO)](https://addons.mozilla.org) once it's approved.
+1. Download the `firefox-build/` folder and zip it
+2. Go to `about:addons` → ⚙️ → **Install Add-on From File**
+3. Select the zip → Done!
 
 ## How It Works
 1. Visit any anime streaming page
