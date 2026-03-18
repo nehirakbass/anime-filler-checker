@@ -1,6 +1,10 @@
 # 🎯 Anime Filler Checker
 
-Chrome/Edge extension that **auto-detects** the anime and episode you're watching and shows a **floating badge directly on the page** — FILLER ⛔, CANON ✅, MIXED ⚠️, or ANIME CANON 🔵.
+Browser extension that **auto-detects** the anime and episode you're watching and shows a **floating badge directly on the page** — FILLER ⛔, CANON ✅, MIXED ⚠️, or ANIME CANON 🔵.
+
+Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
+
+🌐 **Website:** [animefillerchecker.com](https://animefillerchecker.com)
 
 ## Screenshots
 
@@ -15,13 +19,23 @@ Chrome/Edge extension that **auto-detects** the anime and episode you're watchin
 - 🖱️ **Draggable** — Move the badge anywhere on the page
 - 🔎 **Manual search** — Search any anime/episode from the popup
 - 🌐 **Wide support** — Works on Crunchyroll, 9anime, and most anime streaming sites
-- 💾 **Smart cache** — Results cached for 24h to minimize requests
+- 💾 **Smart cache** — Filler data cached for 14 days, MAL scores for 5 days
 
 ## Install
-1. Unzip
-2. `chrome://extensions/` → Developer mode ON
-3. **Load unpacked** → select folder
+
+### Chrome / Edge (Chromium)
+1. Download or clone this repo
+2. Go to `chrome://extensions/` → Enable **Developer mode**
+3. Click **Load unpacked** → select the repo folder
 4. Done!
+
+### Firefox
+1. Download or clone this repo
+2. Go to `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on** → select `firefox-build/manifest.json`
+4. Done! *(Note: temporary add-ons are removed when Firefox closes)*
+
+> **Tip:** For a permanent install, get it from [Firefox Add-ons (AMO)](https://addons.mozilla.org) once it's approved.
 
 ## How It Works
 1. Visit any anime streaming page
