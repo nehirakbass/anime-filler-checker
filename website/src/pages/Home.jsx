@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import InteractiveDemo from '../components/InteractiveDemo'
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/TBD'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
@@ -72,18 +73,8 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Badge demo */}
-            <div className="badge-demo">
-              <span className="demo-pill canon">✅ CANON</span>
-              <span className="demo-pill filler">⛔ FILLER</span>
-              <span className="demo-pill mixed">⚠️ MIXED</span>
-              <span className="demo-pill anime-canon">🔵 ANIME CANON</span>
-            </div>
-
-            {/* Screenshot */}
-            <div className="hero-image">
-              <img src="/hero-screenshot.png" alt="Anime Filler Checker showing a CANON badge on an anime streaming page" loading="lazy" />
-            </div>
+            {/* Interactive Demo */}
+            <InteractiveDemo />
           </div>
         </section>
 
@@ -110,19 +101,9 @@ export default function Home() {
                 <p>See MyAnimeList rating, member count, and airing status without leaving the page.</p>
               </div>
               <div className="feature-card">
-                <div className="feature-icon">🌐</div>
-                <h3>Works Everywhere</h3>
-                <p>Crunchyroll, HiAnime, GoGoAnime, AnimePahe, AniWave — and any site with anime in the URL or title.</p>
-              </div>
-              <div className="feature-card">
                 <div className="feature-icon">🔎</div>
                 <h3>Manual Search</h3>
                 <p>Type any anime name and episode in the popup for a quick manual lookup.</p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">💾</div>
-                <h3>Smart Cache</h3>
-                <p>Filler data cached for 14 days, MAL scores for 5 days. Instant results on repeat visits, zero wasted requests.</p>
               </div>
             </div>
           </div>
@@ -156,29 +137,6 @@ export default function Home() {
                 <p>Filler? Skip it. Canon? Enjoy. You just saved yourself hours of wasted episodes.</p>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Sites */}
-        <section className="sites">
-          <div className="container">
-            <div className="sites-label">Works on any streaming platform</div>
-            <div className="sites-list">
-              <span>Crunchyroll</span>
-              <span>HiAnime</span>
-              <span>GoGoAnime</span>
-              <span>AnimePahe</span>
-              <span>AniWave</span>
-              <span>KickAssAnime</span>
-              <span>+ any site</span>
-            </div>
-            <p style={{ color: 'var(--text2)', fontSize: '14px', marginTop: '20px' }}>
-              Doesn't work on your site?{' '}
-              <a href="https://github.com/nehirakbass/anime-filler-checker/issues" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>
-                Let us know
-              </a>
-              {' '}— we'll add support.
-            </p>
           </div>
         </section>
 
