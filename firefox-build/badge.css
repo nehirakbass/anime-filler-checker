@@ -8,6 +8,7 @@
   top: 16px;
   right: 16px;
   z-index: 2147483647;
+  /* position overrides applied via .afc-pos-* classes */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   pointer-events: auto;
   opacity: 0;
@@ -28,6 +29,20 @@
   transform: translateY(-16px) scale(0.9) !important;
   pointer-events: none !important;
   transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ─── Badge position variants ─────────────── */
+#afc-floating-badge.afc-pos-top-right {
+  top: 16px; right: 16px; bottom: auto; left: auto;
+}
+#afc-floating-badge.afc-pos-top-left {
+  top: 16px; left: 16px; bottom: auto; right: auto;
+}
+#afc-floating-badge.afc-pos-bottom-right {
+  bottom: 16px; right: 16px; top: auto; left: auto;
+}
+#afc-floating-badge.afc-pos-bottom-left {
+  bottom: 16px; left: 16px; top: auto; right: auto;
 }
 
 /* ─── Inner container (split pill) ────────── */
@@ -264,4 +279,117 @@
 }
 .afc-type-error .afc-badge-sub {
   color: rgba(200, 195, 210, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *  AUTO-SKIP OVERLAY
+ * ═══════════════════════════════════════════════════════════════ */
+#afc-skip-overlay {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  animation: afc-skip-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Skip overlay position follows badge */
+#afc-skip-overlay.afc-pos-top-right    { top: 80px; right: 16px; bottom: auto; left: auto; }
+#afc-skip-overlay.afc-pos-top-left     { top: 80px; left: 16px; bottom: auto; right: auto; }
+#afc-skip-overlay.afc-pos-bottom-right { bottom: 80px; right: 16px; top: auto; left: auto; }
+#afc-skip-overlay.afc-pos-bottom-left  { bottom: 80px; left: 16px; top: auto; right: auto; }
+
+@keyframes afc-skip-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.afc-skip-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: rgba(12, 14, 22, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+  max-width: 520px;
+}
+
+.afc-skip-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.afc-skip-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.afc-skip-title {
+  font-size: 13px;
+  color: #eaedf3;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.afc-skip-title strong {
+  color: #ff5070;
+}
+
+.afc-skip-sub {
+  font-size: 11px;
+  color: rgba(200, 200, 220, 0.6);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.afc-skip-countdown {
+  font-weight: 700;
+  color: #8b6cff;
+  font-variant-numeric: tabular-nums;
+}
+
+.afc-skip-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.afc-skip-now {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8b6cff, #c471ed);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  font-family: inherit;
+}
+.afc-skip-now:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.afc-skip-cancel {
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: inherit;
+}
+.afc-skip-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }

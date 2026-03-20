@@ -295,6 +295,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         } catch {}
 
         const ep = data.episodes[episode];
+        
+        // Find next canon episode for auto-skip
+        let nextCanonEp = null;
+        if (ep) {
+          const skipTypes = ["filler", "mixed"];
+          for (let n = episode + 1; n <= episode + 50; n++) {
+            const candidate = data.episodes[n];
+            if (!candidate) break; // no more episodes
+            if (!skipTypes.includes(candidate.type)) {
+              nextCanonEp = { number: n, title: candidate.title, type: candidate.type };
+              break;
+            }
+          }
+        }
+
         sendResponse({
           success: true,
           showTitle: data.showTitle,
@@ -302,6 +317,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           totalEpisodes: data.totalEpisodes,
           episode: ep || null,
           queriedEpisode: episode,
+          nextCanonEp,
           mal,
         });
       } catch (err) {

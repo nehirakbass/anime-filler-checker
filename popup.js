@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const nameInput = $("#manualName");
   const epInput   = $("#manualEp");
   const toggle    = $("#toggleEnabled");
+  const skipSelect = $("#autoSkip");
+  const posSelect = $("#badgePosition");
 
   // Load toggle state (default: enabled)
   try {
@@ -25,9 +27,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     toggle.checked = data.afc_enabled !== false;
   } catch {}
 
+  // Load auto-skip state (default: off)
+  try {
+    const data = await chrome.storage.local.get("afc_auto_skip");
+    skipSelect.value = data.afc_auto_skip || "off";
+  } catch {}
+
+  // Load badge position (default: top-right)
+  try {
+    const data = await chrome.storage.local.get("afc_badge_pos");
+    posSelect.value = data.afc_badge_pos || "top-right";
+  } catch {}
+
   // Save toggle state on change
   toggle.addEventListener("change", () => {
     chrome.storage.local.set({ afc_enabled: toggle.checked });
+  });
+
+  // Save auto-skip state on change
+  skipSelect.addEventListener("change", () => {
+    chrome.storage.local.set({ afc_auto_skip: skipSelect.value });
+  });
+
+  // Save badge position on change
+  posSelect.addEventListener("change", () => {
+    chrome.storage.local.set({ afc_badge_pos: posSelect.value });
   });
 
   // Ask content script

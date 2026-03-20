@@ -320,6 +320,25 @@
    *  ON-PAGE FLOATING BADGE
    * ═══════════════════════════════════════════════════════════════ */
   const BADGE_ID = "afc-floating-badge";
+  let badgePos = "top-right"; // cached badge position
+
+  async function loadBadgePosition() {
+    try {
+      const data = await chrome.storage.local.get("afc_badge_pos");
+      badgePos = data.afc_badge_pos || "top-right";
+    } catch {}
+  }
+
+  function applyBadgePosition(el) {
+    // Remove old position classes
+    el.classList.remove("afc-pos-top-right", "afc-pos-top-left", "afc-pos-bottom-right", "afc-pos-bottom-left");
+    el.classList.add("afc-pos-" + badgePos);
+    // Reset inline styles that dragging may have set
+    el.style.left = "";
+    el.style.top = "";
+    el.style.right = "";
+    el.style.bottom = "";
+  }
 
   function createBadge() {
     if (document.getElementById(BADGE_ID)) return document.getElementById(BADGE_ID);
@@ -336,6 +355,9 @@
       <button class="afc-badge-close" title="Close">✕</button>
     `;
     document.body.appendChild(el);
+
+    // Apply saved position
+    applyBadgePosition(el);
 
     el.querySelector(".afc-badge-close").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -402,6 +424,110 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
+   *  AUTO-SKIP — navigate to next canon episode
+   * ═══════════════════════════════════════════════════════════════ */
+  const SKIP_OVERLAY_ID = "afc-skip-overlay";
+
+  function buildNextEpUrl(nextEp) {
+    const currentUrl = location.href;
+    // Replace episode number in URL patterns like ep-176, episode-176, ep176, /176
+    const patterns = [
+      /(\bep[-_]?)(\d+)/i,
+      /(\bepisode[-_]?)(\d+)/i,
+      /(\bbol[uü]m[-_]?)(\d+)/i,
+      /(\/watch\/[^/]+\/)(\d+)/i,
+      /(-?)(\d+)(-bol[uü]m)/i,
+    ];
+    for (const pat of patterns) {
+      if (pat.test(currentUrl)) {
+        return currentUrl.replace(pat, (m, pre, num, post) =>
+          pre + nextEp + (post || "")
+        );
+      }
+    }
+    return null;
+  }
+
+  function findNextEpLink() {
+    // Try common "next episode" buttons/links on streaming sites
+    const selectors = [
+      'a[class*="next"]', 'a[class*="Next"]',
+      'a[title*="Next"]', 'a[title*="next"]',
+      'a[aria-label*="Next"]',
+      '.next-ep', '.btn-next', '.next-episode-btn',
+    ];
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el?.href) return el;
+    }
+    return null;
+  }
+
+  function showSkipOverlay(nextEp, nextTitle, animeName, currentType) {
+    removeSkipOverlay();
+
+    const overlay = document.createElement("div");
+    overlay.id = SKIP_OVERLAY_ID;
+    overlay.classList.add("afc-pos-" + badgePos);
+
+    const typeLabel = currentType === "filler" ? "FILLER" : "MIXED";
+    const nextUrl = buildNextEpUrl(nextEp);
+
+    let seconds = 5;
+    overlay.innerHTML = `
+      <div class="afc-skip-inner">
+        <div class="afc-skip-icon">${currentType === "filler" ? "⛔" : "⚠️"}</div>
+        <div class="afc-skip-text">
+          <div class="afc-skip-title">This episode is <strong>${typeLabel}</strong></div>
+          <div class="afc-skip-sub">Skipping to EP ${nextEp}${nextTitle ? " — " + nextTitle : ""} in <span class="afc-skip-countdown">${seconds}</span>s</div>
+        </div>
+        <div class="afc-skip-actions">
+          <button class="afc-skip-now">Skip Now</button>
+          <button class="afc-skip-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const countdownEl = overlay.querySelector(".afc-skip-countdown");
+    const timer = setInterval(() => {
+      seconds--;
+      if (countdownEl) countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(timer);
+        navigateToEp(nextUrl);
+      }
+    }, 1000);
+
+    overlay.querySelector(".afc-skip-now").addEventListener("click", () => {
+      clearInterval(timer);
+      navigateToEp(nextUrl);
+    });
+
+    overlay.querySelector(".afc-skip-cancel").addEventListener("click", () => {
+      clearInterval(timer);
+      removeSkipOverlay();
+    });
+  }
+
+  function navigateToEp(url) {
+    removeSkipOverlay();
+    if (url) {
+      location.href = url;
+    } else {
+      // Fallback: try clicking the next-episode button
+      const nextBtn = findNextEpLink();
+      if (nextBtn) nextBtn.click();
+    }
+  }
+
+  function removeSkipOverlay() {
+    const el = document.getElementById(SKIP_OVERLAY_ID);
+    if (el) el.remove();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
    *  AUTO-RUN: detect & check (with toggle + safeguards)
    * ═══════════════════════════════════════════════════════════════ */
   async function autoCheck() {
@@ -414,6 +540,9 @@
       if (data.afc_enabled === false) return;
     } catch {}
 
+    // Load badge position preference
+    await loadBadgePosition();
+
     const info = detect();
 
     // SAFEGUARD: final validation
@@ -425,7 +554,7 @@
 
     chrome.runtime.sendMessage(
       { type: "CHECK_FILLER", animeName: info.animeName, episode: info.episode },
-      (response) => {
+      async (response) => {
         if (chrome.runtime.lastError || !response) {
           showBadgeError("Extension error");
           return;
@@ -439,6 +568,25 @@
         const ep = response.episode;
         const type = ep?.type || "unknown";
         showBadge(type, response.showTitle || info.animeName, info.episode, ep?.title || "");
+
+        // Auto-skip check
+        try {
+          const skipData = await chrome.storage.local.get("afc_auto_skip");
+          const skipMode = skipData.afc_auto_skip || "off"; // "off" | "filler" | "filler_mixed"
+          if (skipMode !== "off" && response.nextCanonEp) {
+            const shouldSkip =
+              (skipMode === "filler" && type === "filler") ||
+              (skipMode === "filler_mixed" && (type === "filler" || type === "mixed"));
+            if (shouldSkip) {
+              showSkipOverlay(
+                response.nextCanonEp.number,
+                response.nextCanonEp.title,
+                response.showTitle || info.animeName,
+                type
+              );
+            }
+          }
+        } catch {}
       }
     );
   }

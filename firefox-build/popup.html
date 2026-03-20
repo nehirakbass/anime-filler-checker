@@ -483,6 +483,52 @@
       margin: 0 4px;
       opacity: 0.4;
     }
+
+    /* ─── Auto-skip select ────────────── */
+    .skip-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 14px 12px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .skip-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .skip-label span {
+      font-size: 10px;
+      font-weight: 500;
+      display: block;
+      margin-top: 2px;
+      opacity: 0.6;
+    }
+    .skip-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 8px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .skip-select:focus {
+      border-color: rgba(139,108,255,0.5);
+    }
+    .skip-select option {
+      background: #1a1c28;
+      color: var(--text);
+    }
   </style>
 </head>
 <body>
@@ -507,6 +553,33 @@
       <input type="checkbox" id="toggleEnabled" checked />
       <span class="toggle-slider"></span>
     </label>
+  </div>
+
+  <!-- Auto-skip -->
+  <div class="skip-row">
+    <div class="skip-label">
+      Auto-skip
+      <span>Skip to next canon episode</span>
+    </div>
+    <select id="autoSkip" class="skip-select">
+      <option value="off">Off</option>
+      <option value="filler">Filler only</option>
+      <option value="filler_mixed">Filler + Mixed</option>
+    </select>
+  </div>
+
+  <!-- Badge position -->
+  <div class="skip-row">
+    <div class="skip-label">
+      Badge position
+      <span>Where badge appears on page</span>
+    </div>
+    <select id="badgePosition" class="skip-select">
+      <option value="top-right">Top Right</option>
+      <option value="top-left">Top Left</option>
+      <option value="bottom-right">Bottom Right</option>
+      <option value="bottom-left">Bottom Left</option>
+    </select>
   </div>
 
   <!-- Detected info -->

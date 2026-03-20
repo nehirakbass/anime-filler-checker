@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import InteractiveDemo from '../components/InteractiveDemo'
+import TechDemo from '../components/TechDemo'
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/TBD'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
@@ -69,7 +70,7 @@ export default function Home() {
                 Add to Firefox
               </a>
               <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
-                ⭐ View on GitHub
+                <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="18" height="18" /> View on GitHub
               </a>
             </div>
 
@@ -113,30 +114,9 @@ export default function Home() {
         <section className="how" id="how-it-works">
           <div className="container">
             <h2 className="section-title">How It Works</h2>
-            <p className="section-sub">Three seconds from install to verdict.</p>
+            <p className="section-sub">Here's what happens under the hood in milliseconds.</p>
 
-            <div className="steps">
-              <div className="step">
-                <div className="step-num">1</div>
-                <h3>Install the Extension</h3>
-                <p>Add to Chrome or Firefox in one click. No account, no signup, no permissions you don't need.</p>
-              </div>
-              <div className="step">
-                <div className="step-num">2</div>
-                <h3>Watch Any Anime</h3>
-                <p>Go to your favorite streaming site and play an episode like you normally would.</p>
-              </div>
-              <div className="step">
-                <div className="step-num">3</div>
-                <h3>See the Badge</h3>
-                <p>A floating badge appears in the corner — CANON, FILLER, or MIXED. That's it.</p>
-              </div>
-              <div className="step">
-                <div className="step-num">4</div>
-                <h3>Skip or Watch</h3>
-                <p>Filler? Skip it. Canon? Enjoy. You just saved yourself hours of wasted episodes.</p>
-              </div>
-            </div>
+            <TechDemo />
           </div>
         </section>
 
@@ -192,7 +172,7 @@ export default function Home() {
 
               <div className="cta-buttons" style={{ marginTop: '20px' }}>
                 <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
-                  ⭐ View on GitHub
+                  <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="18" height="18" /> View on GitHub
                 </a>
               </div>
               <p className="cta-note">Free &amp; open source — no ads, no tracking, no signup.</p>
@@ -207,6 +187,7 @@ export default function Home() {
           <div className="footer-links">
             <Link to="/privacy">Privacy Policy</Link>
             <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/sponsors/nehirakbass" target="_blank" rel="noopener">💖 Sponsor</a>
             <a href={CHROME_URL}>Chrome Web Store</a>
             <a href={FIREFOX_URL}>Firefox Add-ons</a>
           </div>
