@@ -1112,6 +1112,56 @@ nav {
   position: relative;
   opacity: 0.6;
 }
+
+/* ─── Sponsor Section ────────────────────── */
+.sponsor-section {
+  padding: 0 0 80px;
+  text-align: center;
+}
+.sponsor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 48px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.sponsor-box::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 70%, rgba(255, 100, 150, 0.08), transparent 50%);
+  pointer-events: none;
+}
+.sponsor-heart {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 12px;
+}
+.sponsor-box h2 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  position: relative;
+}
+.sponsor-box p {
+  color: var(--text2);
+  font-size: 15px;
+  margin-bottom: 24px;
+  position: relative;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.sponsor-btn {
+  position: relative;
+  background: linear-gradient(135deg, #db61a2, #8b6cff) !important;
+}
+.sponsor-btn:hover {
+  filter: brightness(1.15);
+}
+
 /* ─── Waitlist Form ──────────────────────── */
 .waitlist-form {
   display: flex;
@@ -1290,7 +1340,9 @@ footer {
   .tech-pip-arrow { display: none; }
   .tech-terminal-body { padding: 14px; font-size: 11px; min-height: 140px; }
   .cta-box { padding: 40px 24px; }
-  .cta-box h2 { font-size: 24px; }  
+  .cta-box h2 { font-size: 24px; }
+  .sponsor-box { padding: 36px 20px; }
+  .sponsor-box h2 { font-size: 22px; }
   /* Toast responsive */
   .toast {
     left: 12px;

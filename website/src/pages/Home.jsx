@@ -179,6 +179,20 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Sponsor */}
+        <section className="sponsor-section">
+          <div className="container">
+            <div className="sponsor-box">
+              <span className="sponsor-heart">💖</span>
+              <h2>Support the Project</h2>
+              <p>If you enjoy Anime Filler Checker, consider sponsoring to keep it free &amp; ad-free for everyone.</p>
+              <a href="https://github.com/sponsors/nehirakbass" className="btn-primary sponsor-btn" target="_blank" rel="noopener">
+                💖 Become a Sponsor
+              </a>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
@@ -187,7 +201,6 @@ export default function Home() {
           <div className="footer-links">
             <Link to="/privacy">Privacy Policy</Link>
             <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>
-            <a href="https://github.com/sponsors/nehirakbass" target="_blank" rel="noopener">💖 Sponsor</a>
             <a href={CHROME_URL}>Chrome Web Store</a>
             <a href={FIREFOX_URL}>Firefox Add-ons</a>
           </div>
