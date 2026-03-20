@@ -10,7 +10,7 @@ Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/promo-hero.png" width="800" alt="Anime Filler Checker - Skip the filler, watch what matters" />
+  <img src="screenshots/promo-hero.png?v=2" width="800" alt="Anime Filler Checker - Skip the filler, watch what matters" />
 </p>
 
 ## Features
