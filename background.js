@@ -300,9 +300,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         let nextCanonEp = null;
         if (ep) {
           const skipTypes = ["filler", "mixed"];
-          for (let n = episode + 1; n <= episode + 50; n++) {
+          const maxEp = Math.max(...Object.keys(data.episodes).map(Number));
+          for (let n = episode + 1; n <= Math.min(episode + 50, maxEp); n++) {
             const candidate = data.episodes[n];
-            if (!candidate) break; // no more episodes
+            if (!candidate) continue; // gap in numbering — keep looking
             if (!skipTypes.includes(candidate.type)) {
               nextCanonEp = { number: n, title: candidate.title, type: candidate.type };
               break;

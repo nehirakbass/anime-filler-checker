@@ -560,9 +560,9 @@
           return;
         }
         if (!response.success) {
-          // Silently hide on non-anime pages instead of showing error
-          const badge = document.getElementById(BADGE_ID);
-          if (badge) badge.classList.add("afc-hidden");
+          // Show a dismissible "not found" badge so users know the lookup failed
+          // (e.g. anime has no filler and is not on AnimeFillerList)
+          showBadge("unknown", info.animeName, info.episode, "Not found on AnimeFillerList");
           return;
         }
         const ep = response.episode;
