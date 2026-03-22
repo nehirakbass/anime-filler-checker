@@ -465,6 +465,85 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ─── Report Bug ─────────────────── */
+    .bug-toggle {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+    }
+    .bug-toggle summary {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--filler);
+      cursor: pointer;
+      outline: none;
+      padding: 4px 0;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .bug-toggle summary::-webkit-details-marker { display: none; }
+    .bug-toggle summary::before {
+      content: '▸';
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+    .bug-toggle[open] summary::before {
+      transform: rotate(90deg);
+    }
+    .bug-form {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .bug-form textarea,
+    .bug-form input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .bug-form textarea {
+      min-height: 60px;
+      max-height: 120px;
+    }
+    .bug-form textarea:focus,
+    .bug-form input:focus {
+      border-color: rgba(255,77,106,0.5);
+      box-shadow: 0 0 0 3px rgba(255,77,106,0.1);
+    }
+    .bug-form textarea::placeholder,
+    .bug-form input::placeholder { color: var(--text2); }
+    .bug-submit {
+      padding: 9px;
+      border: none;
+      border-radius: 10px;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--filler);
+      transition: filter 0.15s, transform 0.15s;
+    }
+    .bug-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .bug-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; filter: none !important; }
+    .bug-msg {
+      font-size: 11px;
+      text-align: center;
+      padding: 4px 0;
+    }
+    .bug-msg.success { color: var(--canon); }
+    .bug-msg.error { color: var(--filler); }
+
     /* ─── Footer ──────────────────────── */
     .footer {
       position: relative;
@@ -608,13 +687,24 @@
   <!-- Results -->
   <div id="results"></div>
 
+  <!-- Report a Bug -->
+  <details class="bug-toggle">
+    <summary>💬 Feedback / Bug Report</summary>
+    <form class="bug-form" id="bugForm">
+      <textarea id="bugMessage" placeholder="Bug, suggestion, or just a quick thought — we'd love to hear it!" required></textarea>
+      <input type="email" id="bugEmail" placeholder="Your email (optional — for follow-up)" />
+      <button type="submit" class="bug-submit" id="bugSubmit">Send Report</button>
+      <div class="bug-msg" id="bugMsg"></div>
+    </form>
+  </details>
+
   <!-- Footer -->
   <div class="footer">
     Data from <a href="https://www.animefillerlist.com" target="_blank">AnimeFillerList.com</a>
     <span class="footer-sep">·</span>
-    <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank">View Code</a>
+    <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank">GitHub</a>
     <span class="footer-sep">·</span>
-    <span>v2.1.0</span>
+    <span>v2.3.0</span>
   </div>
 
   <script src="popup.js"></script>

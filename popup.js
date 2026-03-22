@@ -167,3 +167,58 @@ function esc(s) {
   d.textContent = s || "";
   return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ *  REPORT A BUG — Formspree
+ * ═══════════════════════════════════════════════════════════════ */
+document.getElementById("bugForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#bugSubmit");
+  const msgEl = $("#bugMsg");
+  const message = $("#bugMessage").value.trim();
+  if (!message) return;
+
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  msgEl.className = "bug-msg";
+  msgEl.textContent = "";
+
+  // Gather context automatically
+  const detectedInfo = detected?.animeName ? `${detected.animeName} EP ${detected.episode}` : "N/A";
+  const ua = navigator.userAgent;
+
+  // Get the current tab URL
+  let siteUrl = "N/A";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url) siteUrl = tab.url;
+  } catch {}
+
+  try {
+    const res = await fetch("https://formspree.io/f/mbdzevrq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        message,
+        email: $("#bugEmail").value.trim() || "(not provided)",
+        site_url: siteUrl,
+        detected_anime: detectedInfo,
+        browser: ua,
+        extension_version: "v2.3.0",
+      }),
+    });
+    if (res.ok) {
+      msgEl.className = "bug-msg success";
+      msgEl.textContent = "✅ Thanks! We'll look into it.";
+      $("#bugMessage").value = "";
+      $("#bugEmail").value = "";
+    } else {
+      throw new Error("Send failed");
+    }
+  } catch {
+    msgEl.className = "bug-msg error";
+    msgEl.textContent = "Failed to send. Try again later.";
+  }
+  btn.disabled = false;
+  btn.textContent = "Send Report";
+});

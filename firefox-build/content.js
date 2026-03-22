@@ -1,5 +1,5 @@
 /**
- * Anime Filler Checker — Content Script v2.1
+ * Anime Filler Checker — Content Script v2.3
  * - Safeguards against false positives (UUID, hex, non-anime sites)
  * - Toggle support (enable/disable auto-badge)
  * - Extracts anime name + episode from URL, <title>, and DOM
@@ -405,6 +405,8 @@
     badge.querySelector(".afc-badge-icon").textContent = c.icon;
     badge.querySelector(".afc-badge-title").textContent = `EP ${episode} — ${c.label}`;
     badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
+    lastBadgeHTML = badge.outerHTML;
+    startBadgeGuard();
   }
 
   function showBadgeLoading(animeName, episode) {
@@ -421,6 +423,8 @@
     badge.querySelector(".afc-badge-icon").textContent = "😿";
     badge.querySelector(".afc-badge-title").textContent = "Not Found";
     badge.querySelector(".afc-badge-sub").textContent = msg;
+    lastBadgeHTML = badge.outerHTML;
+    startBadgeGuard();
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -560,9 +564,7 @@
           return;
         }
         if (!response.success) {
-          // Silently hide on non-anime pages instead of showing error
-          const badge = document.getElementById(BADGE_ID);
-          if (badge) badge.classList.add("afc-hidden");
+          showBadgeError(`"${info.animeName}" not found on AnimeFillerList`);
           return;
         }
         const ep = response.episode;
@@ -594,14 +596,35 @@
   // Run after a short delay to let SPAs render
   setTimeout(autoCheck, 1500);
 
+  // Protect badge from being removed by site DOM cleanup
+  let badgeGuardTimer = null;
+  let lastBadgeHTML = null;
+  function startBadgeGuard() {
+    if (badgeGuardTimer) clearInterval(badgeGuardTimer);
+    badgeGuardTimer = setInterval(() => {
+      const badge = document.getElementById(BADGE_ID);
+      if (!badge && lastBadgeHTML) {
+        // Badge was removed by the site — re-inject it
+        const temp = document.createElement("div");
+        temp.innerHTML = lastBadgeHTML;
+        const restored = temp.firstElementChild;
+        if (restored) document.body.appendChild(restored);
+      }
+    }, 3000);
+  }
+
   // Re-check on URL change (SPA navigation) — throttled
-  let lastUrl = location.href;
+  // Use pathname+search only (ignore hash changes from video players)
+  let lastUrl = location.pathname + location.search;
   let navTimer = null;
   const observer = new MutationObserver(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
+    const currentUrl = location.pathname + location.search;
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
       const old = document.getElementById(BADGE_ID);
       if (old) old.remove();
+      lastBadgeHTML = null;
+      if (badgeGuardTimer) clearInterval(badgeGuardTimer);
       if (navTimer) clearTimeout(navTimer);
       navTimer = setTimeout(autoCheck, 2000);
     }
