@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+    { "source": "/stremio/(.*)", "destination": "/api/stremio/$1" },
+    { "source": "/((?!assets/|stremio/).*)", "destination": "/index.html" }
   ]
 }
