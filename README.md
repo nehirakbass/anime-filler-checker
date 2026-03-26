@@ -2,7 +2,7 @@
 
 Browser extension that **auto-detects** the anime and episode you're watching and shows a **floating badge directly on the page** — FILLER ⛔, CANON ✅, MIXED ⚠️, or ANIME CANON 🔵.
 
-Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
+Works on **Chrome**, **Edge**, **Firefox**, all Chromium-based browsers, and **Stremio**.
 
 🌐 **Website:** [animefillerchecker.com](https://animefillerchecker.com)
 💖 **Sponsor:** [github.com/sponsors/nehirakbass](https://github.com/sponsors/nehirakbass)
@@ -22,11 +22,12 @@ Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
 - 🌐 **Wide support** — Works on Crunchyroll, HiAnime, GoGoAnime, AnimePahe, AniWave, and more
 - 💾 **Smart cache** — Filler data cached for 14 days, MAL scores for 5 days
 - 🎨 **Themed badges** — Each verdict type has its own color and icon
+- 🎬 **Stremio addon** — Use it directly inside Stremio with episode badges and subtitle notifications
 
 ## Install
 
 ### Chrome Web Store / Edge Add-ons
-> Coming soon — [join the waitlist](https://animefillerchecker.com) to get notified.
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/anime-filler-checker/fnlpgfcmglenllblijbciadeldljjebj)
 
 ### Firefox Add-ons
 [![Firefox Add-ons](https://img.shields.io/badge/Firefox-Add--on-FF7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/)
@@ -42,6 +43,14 @@ Works on **Chrome**, **Edge**, **Firefox**, and all Chromium-based browsers.
 2. Go to `about:debugging#/runtime/this-firefox`
 3. Click **Load Temporary Add-on** → select any file inside `firefox-build/`
 4. Done! *(reloads each time Firefox restarts)*
+
+### Stremio Addon
+Install directly in Stremio:
+1. Open Stremio → **Settings** → **Addons**
+2. Paste: `https://animefillerchecker.com/stremio/manifest.json`
+3. Click **Install**
+
+See [stremio-addon/](stremio-addon/) for source code and self-hosting instructions.
 
 ## How It Works
 1. **URL Analysis** — Parses the current page URL for anime name and episode patterns
@@ -61,11 +70,13 @@ MAL score, member count, and airing status are shown alongside the result.
 ├── popup.html/js          # Extension popup UI
 ├── icons/                 # Extension & favicon icons
 ├── firefox-build/         # Firefox-specific build (MV3 + gecko config)
+├── stremio-addon/         # Stremio addon (Node.js, deployable to Vercel)
+│   ├── api/               # Vercel serverless function
+│   └── lib/               # Shared addon logic
 └── website/               # Landing page (React + Vite, deployed on Vercel)
     ├── src/
     │   ├── pages/         # Home, Privacy
     │   └── components/    # InteractiveDemo, TechDemo
-    ├── api/               # Vercel serverless (waitlist)
     └── public/            # Static assets
 ```
 
