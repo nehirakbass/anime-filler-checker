@@ -1,11 +1,17 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
+
+export const metadata = {
+  title: 'Privacy Policy — Anime Filler Checker',
+  description: 'Privacy policy for Anime Filler Checker. No personal data is collected, stored, or transmitted.',
+  alternates: { canonical: 'https://animefillerchecker.com/privacy' },
+}
 
 export default function Privacy() {
   return (
     <>
       <nav>
         <div className="nav-inner">
-          <Link to="/" className="nav-brand">
+          <Link href="/" className="nav-brand">
             <img src="/icon48.png" alt="Anime Filler Checker" />
             <span>Anime Filler Checker</span>
           </Link>
@@ -39,7 +45,7 @@ export default function Privacy() {
         <ul>
           <li>
             <strong>Filler list cache</strong>: Episode data fetched from AnimeFillerList.com is cached
-            locally in your browser's storage for 14 days to improve performance. This cache contains only
+            locally in your browser&apos;s storage for 14 days to improve performance. This cache contains only
             publicly available anime episode classifications (canon/filler/mixed). No personal data is included.
           </li>
           <li>
@@ -69,7 +75,7 @@ export default function Privacy() {
 
         <h2>Permissions</h2>
         <ul>
-          <li><strong>activeTab</strong>: Used to read the current page's DOM and URL to detect the anime name and episode number being watched. No page content is stored or transmitted.</li>
+          <li><strong>activeTab</strong>: Used to read the current page&apos;s DOM and URL to detect the anime name and episode number being watched. No page content is stored or transmitted.</li>
           <li><strong>storage</strong>: Used to cache anime filler data locally for faster subsequent lookups.</li>
           <li><strong>host_permissions (animefillerlist.com)</strong>: Required to fetch episode data from AnimeFillerList.com.</li>
           <li><strong>host_permissions (api.jikan.moe)</strong>: Required to fetch anime scores and info from MyAnimeList via the Jikan API.</li>
