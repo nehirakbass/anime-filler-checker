@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
@@ -7,6 +7,77 @@ import TechDemo from '@/components/TechDemo'
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/fnlpgfcmglenllblijbciadeldljjebj'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Does Anime Filler Checker work on Crunchyroll?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. The Crunchyroll filler extension detects the anime and episode you\'re watching and overlays a badge — FILLER, CANON, or MIXED — directly on the Crunchyroll page. It acts as a Crunchyroll filler labeler so you never have to leave the tab to check.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does it work on 9anime and other streaming sites?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes — the extension works on any anime streaming site including 9anime, GogoAnime, Zoro, and more. It reads the episode from the URL and page title, so it adapts to whatever site you watch on.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Which Naruto episodes are filler?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Naruto has a notoriously high filler rate — around 41% of episodes. With Anime Filler Checker installed, each Naruto episode is automatically labeled when you open it. You can also open the popup to look up any episode in the Naruto filler list manually.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is a filler episode in anime?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'A filler episode is one not based on the original manga. Studios produce them to avoid overtaking the source material. Filler episodes don\'t advance the main story and can generally be skipped — though some are worth watching for character moments.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I know if an episode is filler without Googling it?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'That\'s exactly what Anime Filler Checker solves. Once installed, it auto-detects the episode and shows its status on-screen — no tab-switching, no spoiler risk from search results. It\'s a live filler detector built into your browser.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does it support One Piece and Bleach?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. One Piece filler episodes and Bleach filler arcs are fully supported. Both series have large filler stretches, so the badge is especially useful there. In total, 500+ anime are supported including Dragon Ball Z, Boruto, Black Clover, and Fairy Tail.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is the Anime Filler Checker extension safe to install?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. Anime Filler Checker is fully open source — you can read every line of code on GitHub. It requests no personal data, collects no analytics, and has no ads. It\'s listed on the Chrome Web Store and Firefox Add-ons.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use it without installing a browser extension?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Currently no, but the extension is free and easy to install and you dont need to create an account. For the future there is a stremio addon in the works. Stay tuned!',
+      },
+    },
+  ],
+}
 
 export default function Home() {
   const [toast, setToast] = useState(null)
@@ -18,6 +89,7 @@ export default function Home() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <div className="glow-1" />
       <div className="glow-2" />
       <div className="glow-3" />
@@ -26,7 +98,7 @@ export default function Home() {
       {toast && (
         <div className={`toast toast-${toast.type}`}>
           <div className="toast-content">
-            <span className="toast-icon">{toast.type === 'success' ? '✓' : '✕'}</span>
+            <span className="toast-icon">{toast.type === 'success' ? 'Ô£ô' : 'Ô£ò'}</span>
             <span className="toast-message">{toast.message}</span>
           </div>
         </div>
@@ -57,7 +129,7 @@ export default function Home() {
             </h1>
             <p>
               Auto-detects the anime &amp; episode you&apos;re watching and shows a floating badge
-              — FILLER, CANON, or MIXED — right on the page. No more tab-switching and manual searching.
+              ÔÇö FILLER, CANON, or MIXED ÔÇö right on the page. No more tab-switching and manual searching.
               <br /><strong style={{ color: 'var(--text)' }}>Fully open source.</strong> Works on any streaming platform.
             </p>
             <div className="hero-buttons" id="install">
@@ -89,7 +161,7 @@ export default function Home() {
               <div className="feature-card">
                 <div className="feature-num">01</div>
                 <h3>Auto-Detect</h3>
-                <p>Reads the anime and episode from the URL, page title, and DOM — no manual input needed.</p>
+                <p>Reads the anime and episode from the URL, page title, and DOM ÔÇö no manual input needed.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-num">02</div>
@@ -99,7 +171,7 @@ export default function Home() {
               <div className="feature-card">
                 <div className="feature-num">03</div>
                 <h3>MAL Score</h3>
-                <p>MyAnimeList rating, member count, and airing status — visible without leaving your tab.</p>
+                <p>MyAnimeList rating, member count, and airing status ÔÇö visible without leaving your tab.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-num">04</div>
@@ -129,27 +201,27 @@ export default function Home() {
             <div className="faq-grid">
               <div className="faq-item">
                 <h3>Does Anime Filler Checker work on Crunchyroll?</h3>
-                <p>Yes. The Crunchyroll filler extension detects the anime and episode you&apos;re watching and overlays a badge — FILLER, CANON, or MIXED — directly on the Crunchyroll page. It acts as a Crunchyroll filler labeler so you never have to leave the tab to check.</p>
+                <p>Yes. The Crunchyroll filler extension detects the anime and episode you&apos;re watching and overlays a badge ÔÇö FILLER, CANON, or MIXED ÔÇö directly on the Crunchyroll page. It acts as a Crunchyroll filler labeler so you never have to leave the tab to check.</p>
               </div>
 
               <div className="faq-item">
                 <h3>Does it work on 9anime and other streaming sites?</h3>
-                <p>Yes — the extension works on any anime streaming site including 9anime, GogoAnime, Zoro, and more. It reads the episode from the URL and page title, so it adapts to whatever site you watch on.</p>
+                <p>Yes ÔÇö the extension works on any anime streaming site including 9anime, GogoAnime, Zoro, and more. It reads the episode from the URL and page title, so it adapts to whatever site you watch on.</p>
               </div>
 
               <div className="faq-item">
                 <h3>Which Naruto episodes are filler?</h3>
-                <p>Naruto has a notoriously high filler rate — around 41% of episodes. With Anime Filler Checker installed, each Naruto episode is automatically labeled when you open it. You can also open the popup to look up any episode in the Naruto filler list manually.</p>
+                <p>Naruto has a notoriously high filler rate ÔÇö around 41% of episodes. With Anime Filler Checker installed, each Naruto episode is automatically labeled when you open it. You can also open the popup to look up any episode in the Naruto filler list manually.</p>
               </div>
 
               <div className="faq-item">
                 <h3>What is a filler episode in anime?</h3>
-                <p>A filler episode is one not based on the original manga. Studios produce them to avoid overtaking the source material. Filler episodes don&apos;t advance the main story and can generally be skipped — though some are worth watching for character moments.</p>
+                <p>A filler episode is one not based on the original manga. Studios produce them to avoid overtaking the source material. Filler episodes don&apos;t advance the main story and can generally be skipped ÔÇö though some are worth watching for character moments.</p>
               </div>
 
               <div className="faq-item">
                 <h3>How do I know if an episode is filler without Googling it?</h3>
-                <p>That&apos;s exactly what Anime Filler Checker solves. Once installed, it auto-detects the episode and shows its status on-screen — no tab-switching, no spoiler risk from search results. It&apos;s a live filler detector built into your browser.</p>
+                <p>That&apos;s exactly what Anime Filler Checker solves. Once installed, it auto-detects the episode and shows its status on-screen ÔÇö no tab-switching, no spoiler risk from search results. It&apos;s a live filler detector built into your browser.</p>
               </div>
 
               <div className="faq-item">
@@ -159,7 +231,7 @@ export default function Home() {
 
               <div className="faq-item">
                 <h3>Is the extension safe to install?</h3>
-                <p>Yes. Anime Filler Checker is fully open source — you can read every line of code on <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>. It requests no personal data, collects no analytics, and has no ads. It&apos;s listed on the Chrome Web Store and Firefox Add-ons.</p>
+                <p>Yes. Anime Filler Checker is fully open source ÔÇö you can read every line of code on <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>. It requests no personal data, collects no analytics, and has no ads. It&apos;s listed on the Chrome Web Store and Firefox Add-ons.</p>
               </div>
 
               <div className="faq-item">
@@ -191,7 +263,7 @@ export default function Home() {
                 <div className="sponsor-col">
                   <p className="sponsor-eyebrow">Open source</p>
                   <h2>Want to contribute?</h2>
-                  <p>Have a feature in mind or found a bug? The repo is open — PRs and issues are always welcome.</p>
+                  <p>Have a feature in mind or found a bug? The repo is open ÔÇö PRs and issues are always welcome.</p>
                   <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
                     <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="16" height="16" /> View on GitHub
                   </a>
@@ -204,7 +276,7 @@ export default function Home() {
               <div className="contact-col">
                 <p className="contact-eyebrow">Contact</p>
                 <h2>Say something</h2>
-                <p>Bug report, feature idea, or just a message — all welcome.</p>
+                <p>Bug report, feature idea, or just a message ÔÇö all welcome.</p>
 
                 <form className="contact-form" onSubmit={async (e) => {
                   e.preventDefault()
@@ -247,7 +319,7 @@ export default function Home() {
                     <label className="contact-label">Message</label>
                     <textarea name="message" placeholder="What&apos;s on your mind?" required className="contact-input contact-textarea" rows={4} />
                   </div>
-                  <button type="submit" className="btn-primary send-btn" style={{ alignSelf: 'flex-start' }}>Send it <span className="send-arrow">→</span></button>
+                  <button type="submit" className="btn-primary send-btn" style={{ alignSelf: 'flex-start' }}>Send it <span className="send-arrow">ÔåÆ</span></button>
                 </form>
               </div>
 
@@ -273,7 +345,7 @@ export default function Home() {
           </div>
           <div className="footer-copy" style={{ marginTop: '8px' }}>
             Built by{' '}
-            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>Nehir Akbaş</a>
+            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>Nehir Akba┼ş</a>
           </div>
         </div>
       </footer>
