@@ -73,11 +73,9 @@ const websiteSchema = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
+      <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
-      </head>
-      <body>
         {children}
         <Analytics />
       </body>
