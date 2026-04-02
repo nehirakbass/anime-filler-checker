@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Anime Filler Checker",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Auto-detects anime & episode, shows FILLER/CANON badge directly on the page",
   "browser_specific_settings": {
     "gecko": {
