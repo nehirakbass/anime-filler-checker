@@ -12,22 +12,33 @@
    *  SAFEGUARDS — prevent false positives
    * ═══════════════════════════════════════════════════════════════ */
 
-  /** Sites that should NEVER trigger auto-detection */
-  const BLOCKED_DOMAINS = [
-    "google.com", "youtube.com", "facebook.com", "twitter.com", "x.com",
-    "instagram.com", "reddit.com", "github.com", "stackoverflow.com",
-    "amazon.com", "netflix.com", "hbomax.com", "hbo.com", "max.com",
-    "disneyplus.com", "spotify.com", "twitch.tv", "discord.com",
-    "linkedin.com", "whatsapp.com", "tiktok.com", "wikipedia.org",
-    "play.google.com", "apple.com", "microsoft.com", "outlook.com",
-    "gmail.com", "mail.google.com", "drive.google.com", "docs.google.com",
-    "claude.ai", "chatgpt.com", "openai.com",
+  /** Default streaming sites where auto-detect is active */
+  const DEFAULT_STREAMING_SITES = [
+    "crunchyroll.com",
+    "hianime.to",
+    "aniwatch.to",
+    "zoro.to",
+    "aniwave.to",
+    "gogoanime.gg",
+    "9anime.to",
+    "animepahe.ru",
+    "animepahe.com",
+    "animesuge.to",
+    "kaido.to",
+    "turkanime.co",
+    "anizm.net",
   ];
 
-  /** Check if current site is blocked */
-  function isBlockedSite() {
-    const host = location.hostname.replace(/^www\./, "");
-    return BLOCKED_DOMAINS.some(d => host === d || host.endsWith("." + d));
+  /** Check if current site is in the user's streaming sites whitelist */
+  async function isStreamingSite() {
+    try {
+      const data = await chrome.storage.local.get("afc_streaming_sites");
+      const sites = data.afc_streaming_sites || DEFAULT_STREAMING_SITES;
+      const host = location.hostname.replace(/^www\./, "");
+      return sites.some(d => host === d || host.endsWith("." + d));
+    } catch {
+      return false;
+    }
   }
 
   /** Validate that a detected name looks like a real anime name */
@@ -320,12 +331,16 @@
    *  ON-PAGE FLOATING BADGE
    * ═══════════════════════════════════════════════════════════════ */
   const BADGE_ID = "afc-floating-badge";
-  let badgePos = "top-right"; // cached badge position
+  let badgePos = "top-right";
+  let badgeContent = "status_title";
+  let badgeAutohide = 3;
 
   async function loadBadgePosition() {
     try {
-      const data = await chrome.storage.local.get("afc_badge_pos");
+      const data = await chrome.storage.local.get(["afc_badge_pos", "afc_badge_content", "afc_badge_autohide"]);
       badgePos = data.afc_badge_pos || "top-right";
+      badgeContent = data.afc_badge_content || "status_title";
+      badgeAutohide = parseInt(data.afc_badge_autohide ?? "3", 10);
     } catch {}
   }
 
@@ -404,9 +419,24 @@
 
     badge.querySelector(".afc-badge-icon").textContent = c.icon;
     badge.querySelector(".afc-badge-title").textContent = `EP ${episode} — ${c.label}`;
-    badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
+
+    // Badge content setting
+    if (badgeContent === "status") {
+      badge.querySelector(".afc-badge-sub").textContent = animeName;
+    } else {
+      badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
+    }
+
     lastBadgeHTML = badge.outerHTML;
     startBadgeGuard();
+
+    // Auto-hide badge
+    if (badgeAutohide > 0) {
+      setTimeout(() => {
+        const b = document.getElementById(BADGE_ID);
+        if (b) b.classList.add("afc-hidden");
+      }, badgeAutohide * 1000);
+    }
   }
 
   function showBadgeLoading(animeName, episode) {
@@ -535,14 +565,15 @@
    *  AUTO-RUN: detect & check (with toggle + safeguards)
    * ═══════════════════════════════════════════════════════════════ */
   async function autoCheck() {
-    // SAFEGUARD: skip blocked sites
-    if (isBlockedSite()) return;
-
     // TOGGLE: check if auto-badge is enabled
     try {
       const data = await chrome.storage.local.get("afc_enabled");
       if (data.afc_enabled === false) return;
     } catch {}
+
+    // WHITELIST: only auto-detect on user's streaming sites
+    const onStreamingSite = await isStreamingSite();
+    if (!onStreamingSite) return;
 
     // Load badge position preference
     await loadBadgePosition();
@@ -570,6 +601,26 @@
         const ep = response.episode;
         const type = ep?.type || "unknown";
         showBadge(type, response.showTitle || info.animeName, info.episode, ep?.title || "");
+
+        // Save to watch history (only if episode is higher than saved)
+        try {
+          const hData = await chrome.storage.local.get("afc_watch_history");
+          let history = hData.afc_watch_history || [];
+          const showName = response.showTitle || info.animeName;
+          const existing = history.find(h => h.name.toLowerCase() === showName.toLowerCase());
+          if (!existing || info.episode > existing.episode) {
+            history = history.filter(h => h.name.toLowerCase() !== showName.toLowerCase());
+            history.unshift({
+              name: showName,
+              episode: info.episode,
+              type,
+              epTitle: ep?.title || "",
+              ts: Date.now(),
+            });
+            if (history.length > 8) history = history.slice(0, 8);
+            await chrome.storage.local.set({ afc_watch_history: history });
+          }
+        } catch {}
 
         // Auto-skip check
         try {
@@ -643,6 +694,10 @@
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "GET_ANIME_INFO") {
       sendResponse(detect());
+    }
+    if (msg.type === "RUN_AUTO_CHECK") {
+      autoCheck();
+      sendResponse({ ok: true });
     }
     return true;
   });

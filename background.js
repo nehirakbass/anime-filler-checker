@@ -8,6 +8,8 @@
 const CACHE_KEY = "afl_cache";
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 14; // 14 days — filler status never changes
 const MAL_CACHE_TTL = 1000 * 60 * 60 * 24 * 5; // 5 days — scores change slowly
+const VERSION_CHECK_KEY = "afc_latest_version";
+const VERSION_CHECK_TTL = 1000 * 60 * 60 * 12; // 12 hours
 
 /* ═══════════════════════════════════════════════════════════════
  *  SLUG BUILDER
@@ -327,4 +329,45 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
     return true; // async
   }
+
+  if (msg.type === "CHECK_UPDATE") {
+    checkForUpdates().then(result => sendResponse(result)).catch(() => sendResponse(null));
+    return true;
+  }
 });
+
+/* ═══════════════════════════════════════════════════════════════
+ *  VERSION CHECK — notify user of available updates
+ * ═══════════════════════════════════════════════════════════════ */
+async function checkForUpdates() {
+  // Check cache first
+  try {
+    const stored = await chrome.storage.local.get(VERSION_CHECK_KEY);
+    const entry = stored[VERSION_CHECK_KEY];
+    if (entry && Date.now() - entry.ts < VERSION_CHECK_TTL) {
+      return entry;
+    }
+  } catch {}
+
+  try {
+    const res = await fetch(
+      "https://raw.githubusercontent.com/nehirakbass/anime-filler-checker/main/version.json",
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.chrome && !data.firefox) return null;
+
+    const result = { chrome: data.chrome, firefox: data.firefox, ts: Date.now() };
+    await chrome.storage.local.set({ [VERSION_CHECK_KEY]: result });
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Check for updates on install/update and on startup
+chrome.runtime.onInstalled.addListener(() => checkForUpdates());
+if (chrome.runtime.onStartup) {
+  chrome.runtime.onStartup.addListener(() => checkForUpdates());
+}

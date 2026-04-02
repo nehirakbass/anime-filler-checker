@@ -57,7 +57,7 @@ export default function HomeClient() {
             </h1>
             <p>
               Auto-detects the anime &amp; episode you&apos;re watching and shows a floating badge
-              ÔÇö FILLER, CANON, or MIXED ÔÇö right on the page. No more tab-switching and manual searching.
+              FILLER, CANON, or MIXED  right on the page. No more tab-switching and manual searching.
               <br /><strong style={{ color: 'var(--text)' }}>Fully open source.</strong> Works on any streaming platform.
             </p>
             <div className="hero-buttons" id="install">
@@ -89,7 +89,7 @@ export default function HomeClient() {
               <div className="feature-card">
                 <div className="feature-num">01</div>
                 <h3>Auto-Detect</h3>
-                <p>Reads the anime and episode from the URL, page title, and DOM ÔÇö no manual input needed.</p>
+                <p>Reads the anime and episode from the URL, page title, and DOM  no manual input needed.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-num">02</div>
@@ -99,7 +99,7 @@ export default function HomeClient() {
               <div className="feature-card">
                 <div className="feature-num">03</div>
                 <h3>MAL Score</h3>
-                <p>MyAnimeList rating, member count, and airing status ÔÇö visible without leaving your tab.</p>
+                <p>MyAnimeList rating, member count, and airing status  visible without leaving your tab.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-num">04</div>
@@ -129,27 +129,27 @@ export default function HomeClient() {
             <div className="faq-grid">
               <div className="faq-item">
                 <h3>Does Anime Filler Checker work on Crunchyroll?</h3>
-                <p>Yes. The Crunchyroll filler extension detects the anime and episode you&apos;re watching and overlays a badge ÔÇö FILLER, CANON, or MIXED ÔÇö directly on the Crunchyroll page. It acts as a Crunchyroll filler labeler so you never have to leave the tab to check.</p>
+                <p>Yes. The Crunchyroll filler extension detects the anime and episode you&apos;re watching and overlays a badge  FILLER, CANON, or MIXED  directly on the Crunchyroll page. It acts as a Crunchyroll filler labeler so you never have to leave the tab to check.</p>
               </div>
 
               <div className="faq-item">
                 <h3>Does it work on 9anime and other streaming sites?</h3>
-                <p>Yes ÔÇö the extension works on any anime streaming site including 9anime, GogoAnime, Zoro, and more. It reads the episode from the URL and page title, so it adapts to whatever site you watch on.</p>
+                <p>Yes  the extension works on any anime streaming site including 9anime, GogoAnime, Zoro, and more. It reads the episode from the URL and page title, so it adapts to whatever site you watch on.</p>
               </div>
 
               <div className="faq-item">
                 <h3>Which Naruto episodes are filler?</h3>
-                <p>Naruto has a notoriously high filler rate ÔÇö around 41% of episodes. With Anime Filler Checker installed, each Naruto episode is automatically labeled when you open it. You can also open the popup to look up any episode in the Naruto filler list manually.</p>
+                <p>Naruto has a notoriously high filler rate  around 41% of episodes. With Anime Filler Checker installed, each Naruto episode is automatically labeled when you open it. You can also open the popup to look up any episode in the Naruto filler list manually.</p>
               </div>
 
               <div className="faq-item">
                 <h3>What is a filler episode in anime?</h3>
-                <p>A filler episode is one not based on the original manga. Studios produce them to avoid overtaking the source material. Filler episodes don&apos;t advance the main story and can generally be skipped ÔÇö though some are worth watching for character moments.</p>
+                <p>A filler episode is one not based on the original manga. Studios produce them to avoid overtaking the source material. Filler episodes don&apos;t advance the main story and can generally be skipped  though some are worth watching for character moments.</p>
               </div>
 
               <div className="faq-item">
                 <h3>How do I know if an episode is filler without Googling it?</h3>
-                <p>That&apos;s exactly what Anime Filler Checker solves. Once installed, it auto-detects the episode and shows its status on-screen ÔÇö no tab-switching, no spoiler risk from search results. It&apos;s a live filler detector built into your browser.</p>
+                <p>That&apos;s exactly what Anime Filler Checker solves. Once installed, it auto-detects the episode and shows its status on-screen  no tab-switching, no spoiler risk from search results. It&apos;s a live filler detector built into your browser.</p>
               </div>
 
               <div className="faq-item">
@@ -191,7 +191,7 @@ export default function HomeClient() {
                 <div className="sponsor-col">
                   <p className="sponsor-eyebrow">Open source</p>
                   <h2>Want to contribute?</h2>
-                  <p>Have a feature in mind or found a bug? The repo is open ÔÇö PRs and issues are always welcome.</p>
+                  <p>Have a feature in mind or found a bug? The repo is open  PRs and issues are always welcome.</p>
                   <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
                     <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="16" height="16" /> View on GitHub
                   </a>
@@ -204,7 +204,7 @@ export default function HomeClient() {
               <div className="contact-col">
                 <p className="contact-eyebrow">Contact</p>
                 <h2>Say something</h2>
-                <p>Bug report, feature idea, or just a message ÔÇö all welcome.</p>
+                <p>Bug report, feature idea, or just a message  all welcome.</p>
 
                 <form className="contact-form" onSubmit={async (e) => {
                   e.preventDefault()

@@ -80,11 +80,14 @@ function InfoTooltip({ text }) {
 
   return (
     <span className="info-tooltip-wrap" ref={ref}>
-      <button
+      <span
         className="info-tooltip-btn"
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); setShow((s) => !s) }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShow((s) => !s) } }}
         aria-label="Info"
-      >ⓘ</button>
+      >ⓘ</span>
       {show && <span className="info-tooltip-bubble">{text}</span>}
     </span>
   )

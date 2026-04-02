@@ -562,6 +562,24 @@
       margin: 0 4px;
       opacity: 0.4;
     }
+    .footer-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .footer-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 10px;
+      transition: color 0.2s, opacity 0.2s;
+      opacity: 0.7;
+    }
+    .footer-action:hover { opacity: 1; color: var(--accent); }
+    .footer-action .fa-icon { font-size: 11px; }
 
     /* ─── Auto-skip select ────────────── */
     .skip-row {
@@ -608,17 +626,392 @@
       background: #1a1c28;
       color: var(--text);
     }
+
+    /* ─── Watch history ──────────────── */
+    .history-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+    }
+    .history-section .card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .history-list:empty::after {
+      content: 'No episodes checked yet';
+      font-size: 11px;
+      color: var(--text2);
+      opacity: 0.5;
+      text-align: center;
+      padding: 8px 0;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .history-type {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .history-type.canon      { background: rgba(0,224,158,0.12); }
+    .history-type.filler     { background: rgba(255,77,106,0.12); }
+    .history-type.mixed      { background: rgba(255,179,71,0.12); }
+    .history-type.anime_canon{ background: rgba(91,168,255,0.12); }
+    .history-type.unknown    { background: rgba(107,113,144,0.12); }
+    .history-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-ep {
+      font-size: 10px;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+    .history-time {
+      font-size: 9px;
+      color: var(--text2);
+      opacity: 0.5;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .history-clear {
+      display: block;
+      margin-top: 6px;
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-size: 10px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s, color 0.2s;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      text-align: right;
+      width: 100%;
+    }
+    .history-clear:hover { opacity: 1; color: var(--filler); }
+
+    /* ─── Update banner ────────────────── */
+    .update-banner {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(139,108,255,0.12), rgba(255,107,157,0.12));
+      border: 1px solid rgba(139,108,255,0.25);
+      border-radius: var(--radius);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .update-banner.show { display: flex; }
+    .update-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .update-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .update-info .update-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .update-info .update-sub {
+      font-size: 10px;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+    .update-btn {
+      background: var(--accent-g);
+      border: none;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      white-space: nowrap;
+      transition: filter 0.15s, transform 0.15s;
+      text-decoration: none;
+    }
+    .update-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ─── Changelog section ─────────── */
+    .update-changelog {
+      display: none;
+      margin: -4px 14px 12px;
+      padding: 10px 14px;
+      background: rgba(139,108,255,0.06);
+      border: 1px solid rgba(139,108,255,0.15);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      animation: pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .update-changelog.show { display: block; }
+    .update-changelog ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .update-changelog ul li {
+      font-size: 11px;
+      color: var(--text2);
+      padding: 3px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .update-changelog ul li::before {
+      content: "✦";
+      color: var(--accent);
+      font-size: 8px;
+      flex-shrink: 0;
+    }
+    .update-whats-new {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 2px;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      opacity: 0.85;
+      transition: opacity 0.15s;
+    }
+    .update-whats-new:hover { opacity: 1; text-decoration: underline; }
+    .update-banner.show.has-changelog { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
+
+    /* ─── Quick add site row ──────────── */
+    .quick-site-row {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+    }
+    .quick-site-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 9px 14px;
+      border: 1px dashed rgba(139,108,255,0.3);
+      border-radius: var(--radius);
+      background: rgba(139,108,255,0.06);
+      color: var(--accent);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .quick-site-btn:hover {
+      background: rgba(139,108,255,0.12);
+      border-color: rgba(139,108,255,0.5);
+    }
+    .quick-site-btn.is-added {
+      border-style: solid;
+      border-color: rgba(0,224,158,0.3);
+      background: rgba(0,224,158,0.06);
+      color: var(--canon);
+      cursor: default;
+    }
+    .quick-site-btn svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Gear button ─────────────────── */
+    .gear-btn {
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .gear-btn:hover {
+      color: var(--accent);
+      background: var(--glass);
+    }
+    .gear-btn svg { width: 20px; height: 20px; }
+
+    /* ─── View switching ──────────────── */
+    .view-hidden { display: none !important; }
+
+    /* ─── Settings panel ──────────────── */
+    .settings-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 22px 16px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+    }
+    .back-btn:hover { background: var(--glass); }
+    .settings-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      background: var(--accent-g);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ─── Streaming sites ─────────────── */
+    .sites-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .sites-header { margin-bottom: 12px; }
+    .sites-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .sites-list:empty { display: none; }
+    .site-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px 4px 10px;
+      background: rgba(139,108,255,0.1);
+      border: 1px solid rgba(139,108,255,0.2);
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .site-chip .site-remove {
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 2px;
+      line-height: 1;
+      border-radius: 50%;
+      transition: color 0.2s;
+    }
+    .site-chip .site-remove:hover { color: var(--filler); }
+    .site-add-row {
+      display: flex;
+      gap: 6px;
+    }
+    .site-add-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .site-add-row input:focus { border-color: rgba(139,108,255,0.5); }
+    .site-add-row input::placeholder { color: var(--text2); }
+    .site-add-btn {
+      background: rgba(139,108,255,0.15);
+      border: 1px solid rgba(139,108,255,0.3);
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .site-add-btn:hover { background: rgba(139,108,255,0.25); }
+    .sites-reset {
+      display: block;
+      margin-top: 8px;
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-size: 10px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s, color 0.2s;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+    .sites-reset:hover { opacity: 1; color: var(--accent); }
   </style>
 </head>
 <body>
+  <!-- Main View -->
+  <div id="mainView">
+
   <!-- Header -->
   <div class="header">
     <div class="header-row">
       <div class="logo"><img src="icons/icon48.png" width="28" height="28" style="border-radius:6px" /></div>
-      <div>
+      <div style="flex:1">
         <h1>Anime Filler Checker</h1>
         <div class="tagline">Skip the filler, watch what matters</div>
       </div>
+      <button class="gear-btn" id="settingsBtn" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
   </div>
 
@@ -626,7 +1019,7 @@
   <div class="toggle-row">
     <div class="toggle-label">
       Auto-detect
-      <span>Show badge on anime pages</span>
+      <span>Auto-check on your streaming sites</span>
     </div>
     <label class="toggle-switch">
       <input type="checkbox" id="toggleEnabled" checked />
@@ -634,31 +1027,24 @@
     </label>
   </div>
 
-  <!-- Auto-skip -->
-  <div class="skip-row">
-    <div class="skip-label">
-      Auto-skip
-      <span>Skip to next canon episode</span>
+  <!-- Update banner -->
+  <div class="update-banner" id="updateBanner">
+    <div class="update-icon">🚀</div>
+    <div class="update-info">
+      <div class="update-title">Update available! <span id="updateVersion"></span></div>
+      <div class="update-sub">A new version is ready</div>
+      <button class="update-whats-new" id="whatsNewBtn" style="display:none">See what's new ▾</button>
     </div>
-    <select id="autoSkip" class="skip-select">
-      <option value="off">Off</option>
-      <option value="filler">Filler only</option>
-      <option value="filler_mixed">Filler + Mixed</option>
-    </select>
+    <a class="update-btn" id="updateBtn" href="#" target="_blank">Update</a>
   </div>
+  <div class="update-changelog" id="updateChangelog"></div>
 
-  <!-- Badge position -->
-  <div class="skip-row">
-    <div class="skip-label">
-      Badge position
-      <span>Where badge appears on page</span>
-    </div>
-    <select id="badgePosition" class="skip-select">
-      <option value="top-right">Top Right</option>
-      <option value="top-left">Top Left</option>
-      <option value="bottom-right">Bottom Right</option>
-      <option value="bottom-left">Bottom Left</option>
-    </select>
+  <!-- Quick add site -->
+  <div class="quick-site-row" id="quickSiteRow" style="display:none">
+    <button class="quick-site-btn" id="quickSiteBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+      <span id="quickSiteText">Add this site to whitelist</span>
+    </button>
   </div>
 
   <!-- Detected info -->
@@ -687,6 +1073,13 @@
   <!-- Results -->
   <div id="results"></div>
 
+  <!-- Watch History -->
+  <div class="history-section" id="historySection">
+    <div class="card-label">Watch History</div>
+    <div class="history-list" id="historyList"></div>
+    <button class="history-clear" id="clearHistory">Clear history</button>
+  </div>
+
   <!-- Report a Bug -->
   <details class="bug-toggle">
     <summary>💬 Feedback / Bug Report</summary>
@@ -704,7 +1097,94 @@
     <span class="footer-sep">·</span>
     <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank">GitHub</a>
     <span class="footer-sep">·</span>
-    <span>v2.3.0</span>
+    <span id="footerVersion">v2.3.0</span>
+    <div class="footer-actions">
+      <a class="footer-action" href="https://github.com/sponsors/nehirakbass" target="_blank" title="Support this project">
+        <span class="fa-icon">❤️</span> Sponsor
+      </a>
+    </div>
+  </div>
+
+  </div><!-- /mainView -->
+
+  <!-- Settings View -->
+  <div id="settingsView" class="view-hidden">
+    <div class="settings-header">
+      <button class="back-btn" id="settingsBack" title="Back">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+      </button>
+      <h2>Settings</h2>
+    </div>
+
+    <!-- Auto-skip -->
+    <div class="skip-row">
+      <div class="skip-label">
+        Auto-skip
+        <span>Skip to next canon episode</span>
+      </div>
+      <select id="autoSkip" class="skip-select">
+        <option value="off">Off</option>
+        <option value="filler">Filler only</option>
+        <option value="filler_mixed">Filler + Mixed</option>
+      </select>
+    </div>
+
+    <!-- Badge position -->
+    <div class="skip-row">
+      <div class="skip-label">
+        Badge position
+        <span>Where badge appears on page</span>
+      </div>
+      <select id="badgePosition" class="skip-select">
+        <option value="top-right">Top Right</option>
+        <option value="top-left">Top Left</option>
+        <option value="bottom-right">Bottom Right</option>
+        <option value="bottom-left">Bottom Left</option>
+      </select>
+    </div>
+
+    <!-- Badge content -->
+    <div class="skip-row">
+      <div class="skip-label">
+        Badge content
+        <span>What info the badge shows</span>
+      </div>
+      <select id="badgeContent" class="skip-select">
+        <option value="status">Status only</option>
+        <option value="status_title">Status + Title</option>
+      </select>
+    </div>
+
+    <!-- Badge auto-disappear -->
+    <div class="skip-row">
+      <div class="skip-label">
+        Auto-hide badge
+        <span>Badge disappears after</span>
+      </div>
+      <select id="badgeAutohide" class="skip-select">
+        <option value="0">Never</option>
+        <option value="3" selected>3 seconds</option>
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+        <option value="15">15 seconds</option>
+      </select>
+    </div>
+
+    <!-- Streaming Sites -->
+    <div class="sites-section">
+      <div class="sites-header">
+        <div class="skip-label">
+          Streaming Sites
+          <span>Auto-detect only runs on these sites</span>
+        </div>
+      </div>
+      <div class="sites-list" id="sitesList"></div>
+      <div class="site-add-row">
+        <input type="text" id="siteInput" placeholder="e.g. crunchyroll.com" spellcheck="false" />
+        <button class="site-add-btn" id="addSiteBtn">Add</button>
+      </div>
+      <button class="sites-reset" id="resetSites">↺ Reset to defaults</button>
+    </div>
   </div>
 
   <script src="popup.js"></script>
