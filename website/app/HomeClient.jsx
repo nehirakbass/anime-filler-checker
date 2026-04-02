@@ -159,7 +159,7 @@ export default function HomeClient() {
 
               <div className="faq-item">
                 <h3>Is the extension safe to install?</h3>
-                <p>Yes. Anime Filler Checker is fully open source ÔÇö you can read every line of code on <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>. It requests no personal data, collects no analytics, and has no ads. It&apos;s listed on the Chrome Web Store and Firefox Add-ons.</p>
+                <p>Yes. Anime Filler Checker is fully open source you can read every line of code on <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>. It requests no personal data, collects no analytics, and has no ads. It&apos;s listed on the Chrome Web Store and Firefox Add-ons.</p>
               </div>
 
               <div className="faq-item">
