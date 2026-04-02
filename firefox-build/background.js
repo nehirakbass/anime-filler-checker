@@ -131,27 +131,53 @@ async function searchAndFetch(animeName) {
   if (!res.ok) throw new Error("Could not reach AnimeFillerList");
 
   const html = await res.text();
-  const nameNorm = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  // Find all links to /shows/SLUG
+  // Collect all show names/links from AnimeFillerList
   const linkRegex = /<a\s+href=["'](\/shows\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-  let best = null;
-  let bestScore = 0;
+  const shows = [];
   let match;
-
   while ((match = linkRegex.exec(html)) !== null) {
     const href = match[1];
     const text = match[2].replace(/<[^>]+>/g, "").trim();
-    const textNorm = text.toLowerCase().replace(/[^a-z0-9]/g, "");
+    shows.push({ href, text, textNorm: text.toLowerCase().replace(/[^a-z0-9]/g, "") });
+  }
 
-    const score = similarity(nameNorm, textNorm);
-    if (score > bestScore) {
-      bestScore = score;
-      best = { href, text };
+  // Try matching with the original detected name first
+  const namesToTry = [animeName];
+
+  // Use Jikan API to resolve the correct anime title
+  try {
+    const jikanUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&type=tv&limit=1`;
+    const jikanRes = await fetch(jikanUrl);
+    if (jikanRes.ok) {
+      const jikanJson = await jikanRes.json();
+      const jikanAnime = jikanJson.data?.[0];
+      if (jikanAnime) {
+        if (jikanAnime.title) namesToTry.push(jikanAnime.title);
+        if (jikanAnime.title_english) namesToTry.push(jikanAnime.title_english);
+        for (const t of (jikanAnime.titles || [])) {
+          if (t.title) namesToTry.push(t.title);
+        }
+      }
+    }
+  } catch {}
+
+  // Find best match across all name variants
+  let best = null;
+  let bestScore = 0;
+
+  for (const name of namesToTry) {
+    const nameNorm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    for (const show of shows) {
+      const score = similarity(nameNorm, show.textNorm);
+      if (score > bestScore) {
+        bestScore = score;
+        best = show;
+      }
     }
   }
 
-  if (!best || bestScore < 0.35) {
+  if (!best || bestScore < 0.5) {
     throw new Error(`"${animeName}" not found on AnimeFillerList`);
   }
 

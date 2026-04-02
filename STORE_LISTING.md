@@ -16,7 +16,13 @@ Anime Filler Checker automatically detects the anime name and episode number fro
 ⚠️ MIXED — Mix of canon and filler content
 🔵 ANIME CANON — Anime-original but part of the story
 
-⭐ NEW in v2.3: Bug report form added to popup, badge stability improvements, and MAL score on badge!
+⭐ NEW in v2.4:
+• Streaming sites whitelist — Choose which sites show the badge
+• Watch history — Track your watched episodes
+• Badge customization — Customize badge appearance
+• Auto-hide badge option — Badge disappears after a set time
+• Settings panel — All preferences in one place
+• Changelog banner — See what's new after each update
 
 ★ KEY FEATURES:
 • Auto-detection — Works on Crunchyroll, HiAnime, GoGoAnime, AnimePahe, AniWave, and many more
@@ -25,6 +31,9 @@ Anime Filler Checker automatically detects the anime name and episode number fro
 • Manual override — Type any anime name & episode number
 • Smart search — Fuzzy matching finds anime even with imperfect names
 • MAL Score — MyAnimeList rating shown on badge and popup
+• Watch History — Keep track of episodes you've checked
+• Streaming Site Whitelist — Control which sites activate the extension
+• Badge Customization — Personalize badge style and behavior
 • 24-hour cache — Instant results on repeat visits
 • Draggable badge — Move it anywhere on the page
 • Beautiful dark UI — Clean, modern popup interface
