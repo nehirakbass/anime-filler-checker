@@ -26,7 +26,7 @@ export default function HomeClient() {
       {toast && (
         <div className={`toast toast-${toast.type}`}>
           <div className="toast-content">
-            <span className="toast-icon">{toast.type === 'success' ? 'Ô£ô' : 'Ô£ò'}</span>
+            <span className="toast-icon">{toast.type === 'success' ? '✓' : '✗'}</span>
             <span className="toast-message">{toast.message}</span>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function HomeClient() {
                     <label className="contact-label">Message</label>
                     <textarea name="message" placeholder="What&apos;s on your mind?" required className="contact-input contact-textarea" rows={4} />
                   </div>
-                  <button type="submit" className="btn-primary send-btn" style={{ alignSelf: 'flex-start' }}>Send it <span className="send-arrow">ÔåÆ</span></button>
+                  <button type="submit" className="btn-primary send-btn" style={{ alignSelf: 'flex-start' }}>Send it <span className="send-arrow">→</span></button>
                 </form>
               </div>
 
@@ -273,7 +273,7 @@ export default function HomeClient() {
           </div>
           <div className="footer-copy" style={{ marginTop: '8px' }}>
             Built by{' '}
-            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>Nehir Akba┼ş</a>
+            <a href="https://nehirakbas.com" target="_blank" style={{ color: 'var(--accent)', fontWeight: 600 }}>Nehir Akbaş</a>
           </div>
         </div>
       </footer>

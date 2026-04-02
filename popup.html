@@ -562,6 +562,24 @@
       margin: 0 4px;
       opacity: 0.4;
     }
+    .footer-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .footer-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 10px;
+      transition: color 0.2s, opacity 0.2s;
+      opacity: 0.7;
+    }
+    .footer-action:hover { opacity: 1; color: var(--accent); }
+    .footer-action .fa-icon { font-size: 11px; }
 
     /* ─── Auto-skip select ────────────── */
     .skip-row {
@@ -1080,6 +1098,11 @@
     <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank">GitHub</a>
     <span class="footer-sep">·</span>
     <span id="footerVersion">v2.3.0</span>
+    <div class="footer-actions">
+      <a class="footer-action" href="https://github.com/sponsors/nehirakbass" target="_blank" title="Support this project">
+        <span class="fa-icon">❤️</span> Sponsor
+      </a>
+    </div>
   </div>
 
   </div><!-- /mainView -->

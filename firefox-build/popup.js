@@ -249,6 +249,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const currentVersion = chrome.runtime.getManifest().version;
   $("#footerVersion").textContent = `v${currentVersion}`;
 
+  // Set rate link based on browser
+  const rateLink = $("#rateLink");
+  if (rateLink) {
+    const isFF = typeof browser !== "undefined" || navigator.userAgent.includes("Firefox");
+    rateLink.href = isFF
+      ? "https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/reviews/"
+      : `https://chromewebstore.google.com/detail/${chrome.runtime.id}/reviews`;
+  }
+
   try {
     chrome.runtime.sendMessage({ type: "CHECK_UPDATE" }, (result) => {
       if (chrome.runtime.lastError || !result) return;
