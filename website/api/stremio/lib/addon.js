@@ -35,6 +35,12 @@ const manifest = {
     configurationRequired: false,
   },
   homepage: "https://animefillerchecker.com",
+  ...(process.env.STREMIO_ADDONS_SIGNATURE && {
+    stremioAddonsConfig: {
+      issuer: "https://stremio-addons.net",
+      signature: process.env.STREMIO_ADDONS_SIGNATURE,
+    },
+  }),
 };
 
 const builder = new addonBuilder(manifest);
