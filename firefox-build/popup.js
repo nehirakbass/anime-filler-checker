@@ -277,43 +277,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       const isFirefox = typeof browser !== "undefined" || navigator.userAgent.includes("Firefox");
       const storeInfo = isFirefox ? result.firefox : result.chrome;
       if (!storeInfo?.version) return;
+
+      // Populate What's New in settings (always, even if not newer)
+      if (storeInfo.notes) {
+        const items = storeInfo.notes.split("\n").filter(Boolean);
+        if (items.length) {
+          const section = $("#whatsNewSection");
+          const list = $("#whatsNewList");
+          $("#wnVersion").textContent = `v${storeInfo.version}`;
+          list.innerHTML = "";
+          items.forEach(note => {
+            const li = document.createElement("li");
+            li.textContent = note.trim();
+            list.appendChild(li);
+          });
+          section.classList.add("show");
+        }
+      }
+
       if (isNewerVersion(storeInfo.version, currentVersion)) {
-        const banner = $("#updateBanner");
-        $("#updateVersion").textContent = `v${storeInfo.version}`;
-        const updateBtn = $("#updateBtn");
-        if (isFirefox) {
-          updateBtn.href = "https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/";
-        } else {
-          updateBtn.href = `https://chromewebstore.google.com/detail/${chrome.runtime.id}`;
-        }
-        banner.classList.add("show");
-
-        // Changelog / What's new
-        if (storeInfo.notes) {
-          const items = storeInfo.notes.split("\n").filter(Boolean);
-          if (items.length) {
-            const whatsNewBtn = $("#whatsNewBtn");
-            const changelogDiv = $("#updateChangelog");
-            whatsNewBtn.style.display = "";
-            const ul = document.createElement("ul");
-            items.forEach(note => {
-              const li = document.createElement("li");
-              li.textContent = note.trim();
-              ul.appendChild(li);
-            });
-            changelogDiv.innerHTML = "";
-            changelogDiv.appendChild(ul);
-
-            whatsNewBtn.addEventListener("click", () => {
-              const open = changelogDiv.classList.toggle("show");
-              banner.classList.toggle("has-changelog", open);
-              whatsNewBtn.textContent = open ? "Hide changelog ▴" : "See what's new ▾";
-            });
-          }
-        }
+        // Check if user dismissed this version
+        chrome.storage.local.get("afc_dismissed_version", (d) => {
+          if (d.afc_dismissed_version === storeInfo.version) return;
+          const banner = $("#updateBanner");
+          $("#updateTitle").textContent = `New version available! v${storeInfo.version}`;
+          banner.classList.add("show");
+        });
       }
     });
   } catch {}
+
+  // Dismiss update banner
+  $("#dismissBanner").addEventListener("click", () => {
+    const banner = $("#updateBanner");
+    const version = $("#updateTitle").textContent.match(/v[\d.]+/)?.[0]?.slice(1);
+    banner.classList.remove("show");
+    if (version) {
+      chrome.storage.local.set({ afc_dismissed_version: version });
+    }
+  });
 
   checkBtn.disabled = false;
 

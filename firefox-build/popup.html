@@ -751,40 +751,59 @@
       color: var(--text2);
       margin-top: 1px;
     }
-    .update-btn {
-      background: var(--accent-g);
+    .dismiss-btn {
+      background: none;
       border: none;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 6px 12px;
-      border-radius: 8px;
+      color: var(--text2);
+      font-size: 16px;
       cursor: pointer;
-      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-      white-space: nowrap;
-      transition: filter 0.15s, transform 0.15s;
-      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
     }
-    .update-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .dismiss-btn:hover { color: var(--text); background: rgba(255,255,255,0.08); }
 
-    /* ─── Changelog section ─────────── */
-    .update-changelog {
+    /* ─── What's New section (settings) ── */
+    .whats-new-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 14px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
       display: none;
-      margin: -4px 14px 12px;
-      padding: 10px 14px;
-      background: rgba(139,108,255,0.06);
-      border: 1px solid rgba(139,108,255,0.15);
-      border-top: none;
-      border-radius: 0 0 var(--radius) var(--radius);
-      animation: pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .update-changelog.show { display: block; }
-    .update-changelog ul {
+    .whats-new-section.show { display: block; }
+    .whats-new-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .whats-new-header .wn-icon { font-size: 16px; }
+    .whats-new-header .wn-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .whats-new-header .wn-version {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(139,108,255,0.12);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: auto;
+    }
+    .whats-new-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    .update-changelog ul li {
+    .whats-new-list li {
       font-size: 11px;
       color: var(--text2);
       padding: 3px 0;
@@ -792,26 +811,12 @@
       align-items: baseline;
       gap: 6px;
     }
-    .update-changelog ul li::before {
+    .whats-new-list li::before {
       content: "✦";
       color: var(--accent);
       font-size: 8px;
       flex-shrink: 0;
     }
-    .update-whats-new {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 10px;
-      cursor: pointer;
-      padding: 0;
-      margin-top: 2px;
-      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-      opacity: 0.85;
-      transition: opacity 0.15s;
-    }
-    .update-whats-new:hover { opacity: 1; text-decoration: underline; }
-    .update-banner.show.has-changelog { border-radius: var(--radius) var(--radius) 0 0; margin-bottom: 0; }
 
     /* ─── Quick add site row ──────────── */
     .quick-site-row {
@@ -1031,13 +1036,11 @@
   <div class="update-banner" id="updateBanner">
     <div class="update-icon">🚀</div>
     <div class="update-info">
-      <div class="update-title">Update available! <span id="updateVersion"></span></div>
-      <div class="update-sub">A new version is ready</div>
-      <button class="update-whats-new" id="whatsNewBtn" style="display:none">See what's new ▾</button>
+      <div class="update-title" id="updateTitle">New version available!</div>
+      <div class="update-sub">See what's new in Settings → What's New</div>
     </div>
-    <a class="update-btn" id="updateBtn" href="#" target="_blank">Update</a>
+    <button class="dismiss-btn" id="dismissBanner" title="Dismiss">✕</button>
   </div>
-  <div class="update-changelog" id="updateChangelog"></div>
 
   <!-- Quick add site -->
   <div class="quick-site-row" id="quickSiteRow" style="display:none">
@@ -1171,6 +1174,16 @@
     </div>
 
     <!-- Streaming Sites -->
+    <!-- What's New (changelog) -->
+    <div class="whats-new-section" id="whatsNewSection">
+      <div class="whats-new-header">
+        <span class="wn-icon">🚀</span>
+        <span class="wn-title">What's New</span>
+        <span class="wn-version" id="wnVersion"></span>
+      </div>
+      <ul class="whats-new-list" id="whatsNewList"></ul>
+    </div>
+
     <div class="sites-section">
       <div class="sites-header">
         <div class="skip-label">

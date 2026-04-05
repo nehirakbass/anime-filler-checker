@@ -1,12 +1,12 @@
 {
   "chrome": {
-    "version": "2.3.0",
-    "updated": "2026-03-30",
-    "notes": "Streaming sites whitelist\nWatch history\nBadge customization\nAuto-hide badge option"
-  },
-  "firefox": {
     "version": "2.6.0",
     "updated": "2026-04-05",
     "notes": "Added support for AnimeKai.to\nNow supports 26 streaming sites\nImproved anime matching accuracy\nFixed detection when switching episodes\nFixed incorrect anime matches (e.g. sequels vs originals)"
+  },
+  "firefox": {
+    "version": "2.7.0",
+    "updated": "2026-04-05",
+    "notes": "Redesigned update notifications\nChangelog moved to Settings > What's New\nDismissable update banner\nAdded support for AnimeKai.to\nImproved anime matching accuracy\nFixed detection when switching episodes"
   }
 }
