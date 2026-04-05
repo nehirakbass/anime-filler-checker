@@ -9,6 +9,7 @@ const {
   getFillerStats,
 } = require("./fillerData");
 const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
+const { getBadgeDataURI } = require("./badges");
 
 const fetch = require("node-fetch");
 
@@ -21,9 +22,10 @@ const manifest = {
   name: "Anime Filler Checker",
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
-    "Adds filler badges to episode descriptions and optional subtitle notifications.",
+    "Shows filler status in the stream list so you know before you hit play. " +
+    "Visit https://animefillerchecker.com for more info and gain access to browser extensions.",
   logo: "https://animefillerchecker.com/icon128.png",
-  resources: ["meta", "subtitles"],
+  resources: ["meta", "subtitles", "stream"],
   types: ["series"],
   catalogs: [],
   idPrefixes: ["tt"],
@@ -31,6 +33,7 @@ const manifest = {
     configurable: false,
     configurationRequired: false,
   },
+  homepage: "https://animefillerchecker.com",
 };
 
 const builder = new addonBuilder(manifest);
@@ -67,8 +70,13 @@ async function resolveAnimeName(id) {
  */
 function parseEpisodeFromVideoId(videoId) {
   const parts = videoId.split(":");
-  if (parts.length >= 3) return parseInt(parts[2], 10);
-  return NaN;
+  if (parts.length >= 3) {
+    return {
+      season: parseInt(parts[1], 10),
+      episode: parseInt(parts[2], 10),
+    };
+  }
+  return null;
 }
 
 /**
@@ -77,6 +85,46 @@ function parseEpisodeFromVideoId(videoId) {
  */
 function getSeriesId(videoId) {
   return videoId.split(":")[0];
+}
+
+// Cache for Cinemeta video lists (maps season:ep to absolute ep number)
+const absoluteEpCache = new Map();
+
+/**
+ * Resolve season:episode to absolute episode number using Cinemeta.
+ * Cinemeta returns all videos sorted by season/episode; we count the position.
+ */
+async function resolveAbsoluteEpisode(seriesId, season, episode) {
+  const cacheKey = seriesId;
+  let mapping = absoluteEpCache.get(cacheKey);
+
+  if (!mapping) {
+    try {
+      const res = await fetch(
+        `https://v3-cinemeta.strem.io/meta/series/${encodeURIComponent(seriesId)}.json`
+      );
+      if (!res.ok) return episode; // fallback to relative
+      const json = await res.json();
+      const videos = json.meta?.videos;
+      if (!videos || !videos.length) return episode;
+
+      // Sort by season then episode, assign absolute numbers
+      mapping = new Map();
+      const sorted = videos
+        .filter((v) => v.season && v.season > 0 && v.episode && v.episode > 0)
+        .sort((a, b) => a.season - b.season || a.episode - b.episode);
+
+      sorted.forEach((v, i) => {
+        mapping.set(`${v.season}:${v.episode}`, i + 1);
+      });
+
+      absoluteEpCache.set(cacheKey, mapping);
+    } catch {
+      return episode; // fallback
+    }
+  }
+
+  return mapping.get(`${season}:${episode}`) || episode;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -111,6 +159,7 @@ builder.defineMetaHandler(async ({ type, id }) => {
         season: 1,
         episode: epNum,
         overview: `${emoji} ${label} — ${ep.title || `Episode ${epNum}`}`,
+        thumbnail: getBadgeDataURI(ep.type, epNum),
         released: new Date(0).toISOString(),
       });
     }
@@ -152,13 +201,15 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
   if (type !== "series") return { subtitles: [] };
 
   try {
-    const epNum = parseEpisodeFromVideoId(id);
-    if (isNaN(epNum)) return { subtitles: [] };
+    const parsed = parseEpisodeFromVideoId(id);
+    if (!parsed) return { subtitles: [] };
 
     const seriesId = getSeriesId(id);
 
     const animeName = await resolveAnimeName(seriesId);
     if (!animeName) return { subtitles: [] };
+
+    const epNum = await resolveAbsoluteEpisode(seriesId, parsed.season, parsed.episode);
 
     const fillerData = await fetchFillerData(animeName);
     if (!fillerData || fillerData.totalEpisodes === 0) {
@@ -198,6 +249,73 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
   } catch (err) {
     console.error(`[SUBTITLES] Error for ${id}:`, err.message);
     return { subtitles: [] };
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+ *  STREAM HANDLER — Filler status badge in stream list
+ * ═══════════════════════════════════════════════════ */
+
+const STREAM_LABELS = {
+  canon:      "✅ CANON — Manga faithful, safe to watch",
+  filler:     "⛔ FILLER — Not from the manga, safe to skip!",
+  mixed:      "⚠️ MIXED — Contains both canon and filler",
+  anime_canon:"🔵 ANIME CANON — Anime-original but plot-relevant",
+  unknown:    "❓ UNKNOWN — No filler data available",
+};
+
+builder.defineStreamHandler(async ({ type, id }) => {
+  if (type !== "series") return { streams: [] };
+
+  try {
+    const parsed = parseEpisodeFromVideoId(id);
+    if (!parsed) return { streams: [] };
+
+    const seriesId = getSeriesId(id);
+    const animeName = await resolveAnimeName(seriesId);
+    if (!animeName) return { streams: [] };
+
+    const epNum = await resolveAbsoluteEpisode(seriesId, parsed.season, parsed.episode);
+
+    const fillerData = await fetchFillerData(animeName);
+    if (!fillerData || fillerData.totalEpisodes === 0) return { streams: [] };
+
+    const episode = fillerData.episodes[epNum];
+    if (!episode) return { streams: [] };
+
+    const label = STREAM_LABELS[episode.type] || STREAM_LABELS.unknown;
+    const emoji = TYPE_EMOJI[episode.type] || "❓";
+    const shortLabel = SHORT_LABELS[episode.type] || "UNKNOWN";
+
+    let description = label;
+
+    // If filler/mixed, show next canon episode
+    if (episode.type === "filler" || episode.type === "mixed") {
+      for (let n = epNum + 1; n <= epNum + 50; n++) {
+        const candidate = fillerData.episodes[n];
+        if (!candidate) break;
+        if (candidate.type !== "filler" && candidate.type !== "mixed") {
+          description += `\n▶ Next canon: ${candidate.title || `Episode ${candidate.number}`}`;
+          break;
+        }
+      }
+    }
+
+    return {
+      streams: [
+        {
+          name: `${emoji} ${shortLabel}`,
+          description,
+          externalUrl: fillerData.url || "https://www.animefillerlist.com",
+          behaviorHints: {
+            notWebReady: true,
+          },
+        },
+      ],
+    };
+  } catch (err) {
+    console.error(`[STREAM] Error for ${id}:`, err.message);
+    return { streams: [] };
   }
 });
 
