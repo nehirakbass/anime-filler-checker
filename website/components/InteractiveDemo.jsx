@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useCallback } from 'react'
 
 const SCENES = [
@@ -47,7 +49,6 @@ const SCENES = [
   },
 ]
 
-// Animation phases: idle → typing → loading → detecting → result → hold → fade
 const PHASES = ['typing', 'loading', 'detecting', 'result', 'hold']
 const PHASE_DURATIONS = [1400, 800, 1200, 600, 3000]
 
@@ -69,10 +70,8 @@ export default function InteractiveDemo() {
     }, 400)
   }, [])
 
-  // Phase progression
   useEffect(() => {
     if (phase === 'typing') {
-      // Type URL character by character
       if (typedChars < scene.url.length) {
         const speed = 25 + Math.random() * 35
         const t = setTimeout(() => setTypedChars((c) => c + 1), speed)
@@ -101,13 +100,10 @@ export default function InteractiveDemo() {
   const showSite = phase !== 'typing'
   const showScanning = phase === 'detecting' || phase === 'result' || phase === 'hold'
   const showBadge = phase === 'result' || phase === 'hold'
-
-  // Step indicator
   const currentStep = phase === 'typing' ? 1 : (phase === 'loading' ? 1 : (phase === 'detecting' ? 2 : 3))
 
   return (
     <div className={`browser-demo ${fading ? 'browser-demo-fade' : ''}`}>
-      {/* Step indicators */}
       <div className="browser-steps">
         <div className={`browser-step ${currentStep >= 1 ? 'active' : ''} ${currentStep === 1 ? 'current' : ''}`}>
           <span className="browser-step-num">1</span>
@@ -125,9 +121,7 @@ export default function InteractiveDemo() {
         </div>
       </div>
 
-      {/* Mock browser */}
       <div className="browser-chrome">
-        {/* Title bar */}
         <div className="browser-titlebar">
           <div className="browser-dots">
             <span className="dot red" />
@@ -144,7 +138,6 @@ export default function InteractiveDemo() {
           </div>
         </div>
 
-        {/* Address bar */}
         <div className="browser-addressbar">
           <div className="browser-url-bar">
             <span className="browser-lock">🔒</span>
@@ -160,7 +153,6 @@ export default function InteractiveDemo() {
           )}
         </div>
 
-        {/* Page content */}
         <div className="browser-page">
           {!showSite && (
             <div className="browser-blank">
@@ -170,7 +162,6 @@ export default function InteractiveDemo() {
 
           {showSite && (
             <div className="browser-site">
-              {/* Mock site header */}
               <div className="mock-site-nav">
                 <span className="mock-site-logo">YourAnimeSite</span>
                 <div className="mock-site-links">
@@ -178,7 +169,6 @@ export default function InteractiveDemo() {
                 </div>
               </div>
 
-              {/* Mock video player area */}
               <div className="mock-player">
                 <div className="mock-player-inner">
                   <div className="mock-play-btn">▶</div>
@@ -189,12 +179,10 @@ export default function InteractiveDemo() {
                 </div>
               </div>
 
-              {/* Episode title bar */}
               <div className="mock-ep-bar">
                 <span className="mock-ep-title">{scene.title}</span>
               </div>
 
-              {/* Scanning indicator */}
               {phase === 'detecting' && (
                 <div className="browser-scanning">
                   <div className="scanning-pulse" />
@@ -203,7 +191,6 @@ export default function InteractiveDemo() {
                 </div>
               )}
 
-              {/* Floating badge */}
               {showBadge && (
                 <div className={`browser-badge ${scene.verdictClass}`}>
                   <span className="browser-badge-icon">{scene.verdictIcon}</span>
@@ -217,12 +204,10 @@ export default function InteractiveDemo() {
             </div>
           )}
 
-          {/* Loading bar */}
           {phase === 'loading' && <div className="browser-loading-bar" />}
         </div>
       </div>
 
-      {/* Scene selector */}
       <div className="demo-selector">
         {SCENES.map((s, i) => (
           <button

@@ -8,6 +8,8 @@
 const CACHE_KEY = "afl_cache";
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 14; // 14 days — filler status never changes
 const MAL_CACHE_TTL = 1000 * 60 * 60 * 24 * 5; // 5 days — scores change slowly
+const VERSION_CHECK_KEY = "afc_latest_version";
+const VERSION_CHECK_TTL = 1000 * 60 * 60 * 12; // 12 hours
 
 /* ═══════════════════════════════════════════════════════════════
  *  SLUG BUILDER
@@ -129,27 +131,63 @@ async function searchAndFetch(animeName) {
   if (!res.ok) throw new Error("Could not reach AnimeFillerList");
 
   const html = await res.text();
-  const nameNorm = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  // Find all links to /shows/SLUG
+  // Collect all show names/links from AnimeFillerList
   const linkRegex = /<a\s+href=["'](\/shows\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-  let best = null;
-  let bestScore = 0;
+  const shows = [];
   let match;
-
   while ((match = linkRegex.exec(html)) !== null) {
     const href = match[1];
     const text = match[2].replace(/<[^>]+>/g, "").trim();
-    const textNorm = text.toLowerCase().replace(/[^a-z0-9]/g, "");
+    shows.push({ href, text, textNorm: text.toLowerCase().replace(/[^a-z0-9]/g, "") });
+  }
 
-    const score = similarity(nameNorm, textNorm);
+  // 1. Try matching with the original detected name first (highest priority)
+  const detectedNorm = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  let best = null;
+  let bestScore = 0;
+
+  for (const show of shows) {
+    const score = similarity(detectedNorm, show.textNorm);
     if (score > bestScore) {
       bestScore = score;
-      best = { href, text };
+      best = show;
     }
   }
 
-  if (!best || bestScore < 0.35) {
+  // 2. If detected name already has a strong match (≥0.85), skip Jikan entirely
+  //    This prevents Jikan returning a parent series that outscores the correct match
+  if (bestScore < 0.85) {
+    // Use Jikan API to resolve the correct anime title
+    try {
+      const jikanUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&type=tv&limit=1`;
+      const jikanRes = await fetch(jikanUrl);
+      if (jikanRes.ok) {
+        const jikanJson = await jikanRes.json();
+        const jikanAnime = jikanJson.data?.[0];
+        if (jikanAnime) {
+          const jikanNames = [];
+          if (jikanAnime.title) jikanNames.push(jikanAnime.title);
+          if (jikanAnime.title_english) jikanNames.push(jikanAnime.title_english);
+          for (const t of (jikanAnime.titles || [])) {
+            if (t.title) jikanNames.push(t.title);
+          }
+          for (const name of jikanNames) {
+            const nameNorm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+            for (const show of shows) {
+              const score = similarity(nameNorm, show.textNorm);
+              if (score > bestScore) {
+                bestScore = score;
+                best = show;
+              }
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  if (!best || bestScore < 0.5) {
     throw new Error(`"${animeName}" not found on AnimeFillerList`);
   }
 
@@ -327,4 +365,45 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
     return true; // async
   }
+
+  if (msg.type === "CHECK_UPDATE") {
+    checkForUpdates().then(result => sendResponse(result)).catch(() => sendResponse(null));
+    return true;
+  }
 });
+
+/* ═══════════════════════════════════════════════════════════════
+ *  VERSION CHECK — notify user of available updates
+ * ═══════════════════════════════════════════════════════════════ */
+async function checkForUpdates() {
+  // Check cache first
+  try {
+    const stored = await chrome.storage.local.get(VERSION_CHECK_KEY);
+    const entry = stored[VERSION_CHECK_KEY];
+    if (entry && Date.now() - entry.ts < VERSION_CHECK_TTL) {
+      return entry;
+    }
+  } catch {}
+
+  try {
+    const res = await fetch(
+      "https://raw.githubusercontent.com/nehirakbass/anime-filler-checker/main/version.json",
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.chrome && !data.firefox) return null;
+
+    const result = { chrome: data.chrome, firefox: data.firefox, ts: Date.now() };
+    await chrome.storage.local.set({ [VERSION_CHECK_KEY]: result });
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Check for updates on install/update and on startup
+chrome.runtime.onInstalled.addListener(() => checkForUpdates());
+if (chrome.runtime.onStartup) {
+  chrome.runtime.onStartup.addListener(() => checkForUpdates());
+}

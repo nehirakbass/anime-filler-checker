@@ -12,22 +12,46 @@
    *  SAFEGUARDS — prevent false positives
    * ═══════════════════════════════════════════════════════════════ */
 
-  /** Sites that should NEVER trigger auto-detection */
-  const BLOCKED_DOMAINS = [
-    "google.com", "youtube.com", "facebook.com", "twitter.com", "x.com",
-    "instagram.com", "reddit.com", "github.com", "stackoverflow.com",
-    "amazon.com", "netflix.com", "hbomax.com", "hbo.com", "max.com",
-    "disneyplus.com", "spotify.com", "twitch.tv", "discord.com",
-    "linkedin.com", "whatsapp.com", "tiktok.com", "wikipedia.org",
-    "play.google.com", "apple.com", "microsoft.com", "outlook.com",
-    "gmail.com", "mail.google.com", "drive.google.com", "docs.google.com",
-    "claude.ai", "chatgpt.com", "openai.com",
+  /** Default streaming sites where auto-detect is active */
+  const DEFAULT_STREAMING_SITES = [
+    "crunchyroll.com",
+    "hianime.to",
+    "aniwatch.to",
+    "zoro.to",
+    "aniwave.to",
+    "gogoanime.gg",
+    "gogoanime3.co",
+    "gogoanimehd.to",
+    "gogoanime.hu",
+    "gogoanime.film",
+    "anitaku.pe",
+    "anitaku.to",
+    "9anime.to",
+    "9anime.gs",
+    "9anime.pe",
+    "animepahe.ru",
+    "animepahe.com",
+    "animepahe.org",
+    "animesuge.to",
+    "kaido.to",
+    "turkanime.co",
+    "turkanime.tv",
+    "anizm.net",
+    "anizm.tv",
+    "animekai.to",
+    "animekai.pw",
   ];
 
-  /** Check if current site is blocked */
-  function isBlockedSite() {
-    const host = location.hostname.replace(/^www\./, "");
-    return BLOCKED_DOMAINS.some(d => host === d || host.endsWith("." + d));
+  /** Check if current site is in the user's streaming sites whitelist */
+  async function isStreamingSite() {
+    try {
+      const data = await chrome.storage.local.get("afc_streaming_sites");
+      const sites = data.afc_streaming_sites || DEFAULT_STREAMING_SITES;
+      const host = location.hostname.replace(/^www\./, "");
+      return sites.some(d => host === d || host.endsWith("." + d));
+    } catch {
+      return false;
+    }
   }
 
   /** Validate that a detected name looks like a real anime name */
@@ -124,8 +148,8 @@
       /\/(?:watch|anime|izle|video)\/([a-z0-9][a-z0-9-]+?)\/(?:episode-?|ep-?)?(\d+)/,
       // /slug/season-N/episode-NUM
       /\/([a-z0-9][a-z0-9-]+?)\/(?:season-?\d+\/)?(?:episode|ep)-?(\d+)/,
-      // Catch: slug followed by number at end of path
-      /\/([a-z0-9][a-z0-9-]*[a-z])-(\d{1,4})(?:[-\/]|$)/,
+      // Catch: slug followed by number ONLY at true end of path (no more word segments after)
+      /\/([a-z0-9][a-z0-9-]*[a-z])-(\d{1,4})(?:\/|$)/,
     ];
 
     for (const pat of patterns) {
@@ -217,7 +241,6 @@
       const seriesSelectors = [
         'a.show-title-link',
         '[data-testid="series-title"]',
-        'a[href*="/series/"]',
         '.current-media-parent-ref',
         'h4 a[href*="/series/"]',
         '.hero-heading-line a',
@@ -231,7 +254,28 @@
         }
       }
 
-      // Episode title/number: try multiple selectors
+      // Try a[href*="/series/"] but only get the FIRST text-containing one
+      if (!series) {
+        const seriesLinks = document.querySelectorAll('a[href*="/series/"]');
+        for (const el of seriesLinks) {
+          const txt = el.textContent.trim();
+          if (txt && txt.length > 1 && txt.length < 100 && !/episode|watch|season/i.test(txt)) {
+            series = txt;
+            break;
+          }
+        }
+      }
+
+      // Fallback: parse document.title — usually "SERIES_NAME ENUM - Episode Title - Watch on Crunchyroll"
+      if (!series) {
+        const dt = document.title;
+        const dtSeriesMatch = dt.match(/^(.+?)\s+E\d+\s*[-–—]/i);
+        if (dtSeriesMatch) {
+          series = dtSeriesMatch[1].replace(/^Watch\s+/i, "").trim();
+        }
+      }
+
+      // Episode number from DOM
       const titleSelectors = [
         'h1.hero-heading-line',
         '[data-testid="episode-title"]',
@@ -254,56 +298,450 @@
         if (meta) title = meta.content || "";
       }
 
+      // Also try document.title for episode number
+      if (!title) title = document.title;
+
       const epMatch = title.match(/(?:E|EP|Episode)\s*(\d+)/i);
       if (series && epMatch) return { animeName: series, episode: parseInt(epMatch[1], 10) };
 
-      // Last resort: try document.title
-      if (series) {
-        const dtMatch = document.title.match(/(?:E|EP|Episode)\s*(\d+)/i);
-        if (dtMatch) return { animeName: series, episode: parseInt(dtMatch[1], 10) };
-      }
-
       return null;
     },
+
+    /* — HiAnime / Zoro / AniWatch family — */
     "hianime.to": zoroExtract,
     "aniwatch.to": zoroExtract,
     "zoro.to":     zoroExtract,
-    "aniwave.to": () => {
-      const name = document.querySelector("h2.film-name a, .watching-title a")?.textContent?.trim() || "";
-      const epText = document.querySelector(".ep-name, .server-notice strong")?.textContent || "";
-      const epNum = epText.match(/(\d+)/);
-      if (name && epNum) return { animeName: name, episode: parseInt(epNum[1], 10) };
-      return null;
-    },
+    "kaido.to":    zoroExtract,
+    "animesuge.to": zoroExtract,
+
+    /* — AniWave / 9anime family — */
+    "aniwave.to": aniwaveExtract,
+    "9anime.to":  aniwaveExtract,
+    "9anime.gs":  aniwaveExtract,
+    "9anime.pe":  aniwaveExtract,
+
+    /* — GoGoAnime family — */
+    "gogoanime.gg":   gogoanimeExtract,
+    "gogoanime3.co":  gogoanimeExtract,
+    "gogoanimehd.to": gogoanimeExtract,
+    "gogoanime.hu":   gogoanimeExtract,
+    "anitaku.pe":     gogoanimeExtract,
+    "anitaku.to":     gogoanimeExtract,
+    "gogoanime.film": gogoanimeExtract,
+
+    /* — AnimePahe — */
+    "animepahe.ru":  animepaheExtract,
+    "animepahe.com": animepaheExtract,
+    "animepahe.org": animepaheExtract,
+
+    /* — Turkish sites — */
+    "turkanime.co":  turkanimeExtract,
+    "turkanime.tv":  turkanimeExtract,
+    "anizm.net":     anizmExtract,
+    "anizm.tv":      anizmExtract,
+
+    /* — AnimeKai — */
+    "animekai.to":   animekaiExtract,
+    "animekai.pw":   animekaiExtract,
   };
 
+  /* ---------- Shared extractor functions ---------- */
+
+  /** HiAnime / Zoro / AniWatch / Kaido / AnimeSuge */
   function zoroExtract() {
     const name =
-      document.querySelector(".film-name a, .anis-watch-detail .film-name")?.textContent?.trim() || "";
+      document.querySelector(".film-name a, .anis-watch-detail .film-name, .anime-title")?.textContent?.trim() || "";
     const epEl =
       document.querySelector(".ssl-item.ep-item.active")?.getAttribute("title") ||
-      document.querySelector(".ep-item.active")?.textContent || "";
+      document.querySelector(".ep-item.active, .episodes .active")?.textContent || "";
     const epNum = epEl.match(/(\d+)/);
     if (name && epNum) return { animeName: name, episode: parseInt(epNum[1], 10) };
+
+    // Fallback: title "AnimeName Episode N - HiAnime"
+    const titleMatch = document.title.match(/^(.+?)\s+Episode\s+(\d+)/i);
+    if (titleMatch) return { animeName: titleMatch[1].trim(), episode: parseInt(titleMatch[2], 10) };
+
+    return null;
+  }
+
+  /** AniWave / 9anime */
+  function aniwaveExtract() {
+    // Anime name from heading or breadcrumb
+    const name =
+      document.querySelector("h2.film-name a, .watching-title a, .anime-title a")?.textContent?.trim() ||
+      document.querySelector(".breadcrumb li:nth-child(2) a, .brd-ctn a")?.textContent?.trim() || "";
+    // Episode number from active episode indicator or info text
+    const epText =
+      document.querySelector(".ep-name, .server-notice strong, .episodes .active")?.textContent ||
+      document.querySelector(".ep-item.active")?.textContent || "";
+    const epNum = epText.match(/(\d+)/);
+    if (name && epNum) return { animeName: name, episode: parseInt(epNum[1], 10) };
+
+    // Fallback: title "Watch AnimeName Episode N - 9anime"
+    const titleMatch = document.title.match(/(?:Watch\s+)?(.+?)\s+Episode\s+(\d+)/i);
+    if (titleMatch) {
+      const n = titleMatch[1].replace(/^Watch\s+/i, "").trim();
+      return { animeName: n, episode: parseInt(titleMatch[2], 10) };
+    }
+
+    return null;
+  }
+
+  /** GoGoAnime / Anitaku */
+  function gogoanimeExtract() {
+    // URL pattern: /anime-slug-episode-NUMBER
+    const urlMatch = location.pathname.match(/\/(.+?)-episode-(\d+)/i);
+    let animeName = "";
+    let episode = 0;
+
+    // Try DOM: the category/info link has the anime name
+    const infoLink =
+      document.querySelector(".anime-info a[title], .anime_video_body_cate .anime-info a") ||
+      document.querySelector('a[href*="/category/"]');
+    if (infoLink) {
+      animeName = (infoLink.getAttribute("title") || infoLink.textContent || "").trim();
+    }
+
+    // Try h1 which contains "AnimeName Episode N"
+    if (!animeName) {
+      const h1 = document.querySelector(".anime_video_body h1, h1");
+      if (h1) {
+        const h1Match = h1.textContent.match(/^(.+?)\s+Episode\s+(\d+)/i);
+        if (h1Match) {
+          animeName = h1Match[1].trim();
+          episode = parseInt(h1Match[2], 10);
+        }
+      }
+    }
+
+    // Episode from URL if not found in DOM
+    if (!episode && urlMatch) {
+      episode = parseInt(urlMatch[2], 10);
+      if (!animeName) {
+        const slug = urlMatch[1];
+        animeName = KNOWN_ANIME[slug] || slugToName(slug);
+      }
+    }
+
+    // Episode from active episode list item
+    if (!episode) {
+      const activeEp = document.querySelector(".episode_active, li.active a[data-number], .active .name");
+      if (activeEp) {
+        const num = (activeEp.getAttribute("data-number") || activeEp.textContent || "").match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: page title "Watch AnimeName Episode N English Subbed - GoGoAnime"
+    if (!animeName || !episode) {
+      const titleMatch = document.title.match(/(?:Watch\s+)?(.+?)\s+Episode\s+(\d+)/i);
+      if (titleMatch) {
+        if (!animeName) animeName = titleMatch[1].replace(/^Watch\s+/i, "").trim();
+        if (!episode) episode = parseInt(titleMatch[2], 10);
+      }
+    }
+
+    if (animeName && episode) return { animeName, episode };
+    return null;
+  }
+
+  /** AnimePahe */
+  function animepaheExtract() {
+    // Anime name from theatre info or heading
+    let animeName =
+      document.querySelector(".theatre-info h1 a, .anime-title, .title-wrapper h1 a")?.textContent?.trim() || "";
+
+    // Try breadcrumb link to anime page
+    if (!animeName) {
+      const crumb = document.querySelector('a[href*="/anime/"]');
+      if (crumb) animeName = crumb.textContent.trim();
+    }
+
+    // Episode number from active episode badge or info text
+    let episode = 0;
+    const epBadge =
+      document.querySelector(".sequel .active, .episode-number, .theatre-info .episode") ||
+      document.querySelector('[class*="episode"][class*="active"]');
+    if (epBadge) {
+      const num = epBadge.textContent.match(/(\d+)/);
+      if (num) episode = parseInt(num[1], 10);
+    }
+
+    // Try episode from the episode-wrap active item
+    if (!episode) {
+      const activeEp = document.querySelector(".ep-wrap .active, .episode-list .active");
+      if (activeEp) {
+        const num = activeEp.textContent.match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: page title "AnimeName - Episode N :: AnimePahe" or "Watch AnimeName Episode N"
+    if (!animeName || !episode) {
+      const patterns = [
+        /^(.+?)\s*[-–—]\s*Episode\s+(\d+)/i,
+        /(?:Watch\s+)?(.+?)\s+Episode\s+(\d+)/i,
+        /^(.+?)\s+(\d+)\s*::/,
+      ];
+      for (const pat of patterns) {
+        const m = document.title.match(pat);
+        if (m) {
+          if (!animeName) animeName = m[1].replace(/^Watch\s+/i, "").trim();
+          if (!episode) episode = parseInt(m[2], 10);
+          break;
+        }
+      }
+    }
+
+    if (animeName && episode) return { animeName, episode };
+    return null;
+  }
+
+  /** TürkAnime */
+  function turkanimeExtract() {
+    // URL pattern: /video/anime-slug-N-bolum
+    const urlMatch = location.pathname.match(/\/video\/(.+?)-(\d+)-bol[uü]m/i);
+
+    // Anime name from breadcrumb
+    let animeName = "";
+    const breadcrumbs = document.querySelectorAll(".breadcrumb li a, .breadcrumb a, nav a[href*='/anime/']");
+    for (const el of breadcrumbs) {
+      const href = el.getAttribute("href") || "";
+      if (href.includes("/anime/") && !href.includes("/video/")) {
+        animeName = el.textContent.trim();
+        break;
+      }
+    }
+
+    // Try page heading
+    if (!animeName) {
+      const heading = document.querySelector(".video-title h1, h2.baslik, .panel-title, h1.title");
+      if (heading) {
+        // Extract anime name without episode part
+        const hText = heading.textContent.trim();
+        const hMatch = hText.match(/^(.+?)\s+(\d+)\s*\.?\s*(?:Bölüm|Bolum)/i);
+        if (hMatch) animeName = hMatch[1].trim();
+        else animeName = hText;
+      }
+    }
+
+    // Episode number
+    let episode = 0;
+    // From URL
+    if (urlMatch) {
+      episode = parseInt(urlMatch[2], 10);
+      if (!animeName) {
+        const slug = urlMatch[1];
+        animeName = KNOWN_ANIME[slug] || slugToName(slug);
+      }
+    }
+
+    // From active episode selector
+    if (!episode) {
+      const activeEp = document.querySelector(".episode-list .active, .bolumler .active, .ep-active");
+      if (activeEp) {
+        const num = activeEp.textContent.match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: page title "Anime Name N. Bölüm Türkçe Altyazılı İzle - TürkAnime"
+    if (!animeName || !episode) {
+      const titleMatch = document.title.match(/^(.+?)\s+(\d+)\s*\.?\s*(?:Bölüm|Bolum)/i);
+      if (titleMatch) {
+        if (!animeName) animeName = titleMatch[1].replace(/[-–—:]\s*$/, "").trim();
+        if (!episode) episode = parseInt(titleMatch[2], 10);
+      }
+    }
+
+    // Clean noise from name
+    if (animeName) {
+      animeName = animeName
+        .replace(/\b(Türkçe|Altyazılı|İzle|Izle|HD|720p|1080p)\b/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    if (animeName && episode) return { animeName, episode };
+    return null;
+  }
+
+  /** Anizm */
+  function anizmExtract() {
+    // URL pattern: /anime-slug-N-bolum-izle
+    const urlMatch = location.pathname.match(/\/(.+?)-(\d+)-bol[uü]m(?:-izle)?/i);
+
+    // Anime name from breadcrumb or heading
+    let animeName = "";
+    const breadcrumbs = document.querySelectorAll(".breadcrumb a, nav a");
+    for (const el of breadcrumbs) {
+      const href = el.getAttribute("href") || "";
+      // Anizm anime pages are like /anime-slug (no -bolum)
+      if (href.match(/^\/[a-z0-9-]+$/) && !href.includes("-bolum") && href !== "/" && !href.includes("/kategori")) {
+        animeName = el.textContent.trim();
+        break;
+      }
+    }
+
+    // Try heading
+    if (!animeName) {
+      const heading = document.querySelector("h1, h2.title, .video-title");
+      if (heading) {
+        const hText = heading.textContent.trim();
+        const hMatch = hText.match(/^(.+?)\s+(\d+)\s*\.?\s*(?:Bölüm|Bolum)/i);
+        if (hMatch) animeName = hMatch[1].trim();
+      }
+    }
+
+    // Episode number
+    let episode = 0;
+    if (urlMatch) {
+      episode = parseInt(urlMatch[2], 10);
+      if (!animeName) {
+        const slug = urlMatch[1];
+        animeName = KNOWN_ANIME[slug] || slugToName(slug);
+      }
+    }
+
+    // From active episode in episode list
+    if (!episode) {
+      const activeEp = document.querySelector(".episode-list .active, .bolumler .active, .current-episode");
+      if (activeEp) {
+        const num = activeEp.textContent.match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: page title "Anime Name N. Bölüm İzle - Anizm"
+    if (!animeName || !episode) {
+      const titleMatch = document.title.match(/^(.+?)\s+(\d+)\s*\.?\s*(?:Bölüm|Bolum)/i);
+      if (titleMatch) {
+        if (!animeName) animeName = titleMatch[1].replace(/[-–—:]\s*$/, "").trim();
+        if (!episode) episode = parseInt(titleMatch[2], 10);
+      }
+    }
+
+    // Clean noise
+    if (animeName) {
+      animeName = animeName
+        .replace(/\b(Türkçe|Altyazılı|İzle|Izle|HD|Anime)\b/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    if (animeName && episode) return { animeName, episode };
+    return null;
+  }
+
+  /** AnimeKai — uses #ep=NUMBER hash and breadcrumb for anime name */
+  function animekaiExtract() {
+    let animeName = "";
+
+    // 1. Try heading/title area (many possible selectors for AnimeKai's layout)
+    const headingSelectors = [
+      "h2.film-name a",
+      ".anis-watch-detail .film-name a",
+      ".anis-watch-detail .film-name",
+      "h2.film-name",
+      ".title-name",
+      ".anime-name",
+      ".watch-section .title a",
+      ".detail-name a",
+      ".detail-name",
+    ];
+    for (const sel of headingSelectors) {
+      const el = document.querySelector(sel);
+      if (el) {
+        const txt = el.textContent.trim();
+        if (txt && txt.length > 2 && txt.length < 120) { animeName = txt; break; }
+      }
+    }
+
+    // 2. Breadcrumb: links to actual anime detail pages (require /category/slug, not bare /category)
+    if (!animeName) {
+      const allLinks = document.querySelectorAll("a[href]");
+      for (const el of allLinks) {
+        const href = el.getAttribute("href") || "";
+        if (href.match(/^\/(anime|tv|movie|ona|ova|special)\/[a-z0-9]/i)) {
+          const txt = el.textContent.trim();
+          if (txt && txt.length > 2 && txt.length < 120 &&
+              !/^(Home|TV|Movies?|ONA|OVA|Specials?|Chinese|All|Filter|Genres?|Types?|Sort)$/i.test(txt)) {
+            animeName = txt;
+          }
+        }
+      }
+    }
+
+    // 3. URL slug fallback: /watch/fairy-tail-100-years-quest-rm4j → "Fairy Tail 100 Years Quest"
+    //    AnimeKai appends a short alphanumeric hash (3-5 chars, always contains digits) to slugs
+    if (!animeName) {
+      const slugMatch = location.pathname.match(/\/watch\/([a-z0-9][a-z0-9-]+)/i);
+      if (slugMatch) {
+        let slug = slugMatch[1];
+        // Strip trailing hash: must contain at least one digit (e.g. -rm4j, -126r9, -dk6r)
+        // This avoids stripping real words like -lock, -war, -sub, -dub
+        slug = slug.replace(/-(?=[a-z0-9]*\d)[a-z0-9]{2,6}$/i, "");
+        const name = slugToName(slug);
+        if (name && isValidAnimeName(name)) animeName = name;
+      }
+    }
+
+    // Episode from hash: #ep=25
+    let episode = 0;
+    const hashMatch = location.hash.match(/[#&]ep=(\d+)/i);
+    if (hashMatch) {
+      episode = parseInt(hashMatch[1], 10);
+    }
+
+    // Fallback: active episode in episode list
+    if (!episode) {
+      const activeEp = document.querySelector(
+        ".ep-item.active, .episode-item.active, .episodes .active, " +
+        ".epi-item.active, .episode.active, [data-number].active"
+      );
+      if (activeEp) {
+        const num = (activeEp.getAttribute("data-number") || activeEp.textContent || "").match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: "You are watching Episode N" text on page
+    if (!episode) {
+      const body = document.body?.textContent || "";
+      const watchingMatch = body.match(/(?:watching|izliyorsunuz)\s+Episode\s+(\d+)/i);
+      if (watchingMatch) episode = parseInt(watchingMatch[1], 10);
+    }
+
+    // Fallback: page title "Watch Anime Name Episode N Sub/Dub - AnimeKai"
+    if (!animeName || !episode) {
+      const titleMatch = document.title.match(/(?:Watch\s+)?(.+?)\s+Episode\s+(\d+)/i);
+      if (titleMatch) {
+        if (!animeName) animeName = titleMatch[1].replace(/^Watch\s+/i, "").trim();
+        if (!episode) episode = parseInt(titleMatch[2], 10);
+      }
+    }
+
+    if (animeName && episode) return { animeName, episode };
     return null;
   }
 
   /* ═══════════════════════════════════════════════════════════════
-   *  MAIN DETECT — tries URL → DOM → Title in order
+   *  MAIN DETECT — tries DOM → URL → Title → Meta in order
    * ═══════════════════════════════════════════════════════════════ */
   function detect() {
-    // 1. URL (most reliable for intl sites)
-    const fromURL = extractFromURL();
-    if (fromURL?.animeName && fromURL?.episode) return fromURL;
-
-    // 2. Site-specific DOM
     const host = location.hostname.replace(/^www\./, "");
+
+    // 1. Site-specific DOM extractors (most reliable for known sites)
     for (const [key, fn] of Object.entries(siteExtractors)) {
       if (host.includes(key)) {
         const r = fn();
         if (r?.animeName && r?.episode) return r;
       }
     }
+
+    // 2. URL parser (reliable for intl/unknown sites)
+    const fromURL = extractFromURL();
+    if (fromURL?.animeName && fromURL?.episode) return fromURL;
 
     // 3. Title tag
     const fromTitle = extractFromTitle();
@@ -320,12 +758,16 @@
    *  ON-PAGE FLOATING BADGE
    * ═══════════════════════════════════════════════════════════════ */
   const BADGE_ID = "afc-floating-badge";
-  let badgePos = "top-right"; // cached badge position
+  let badgePos = "top-right";
+  let badgeContent = "status_title";
+  let badgeAutohide = 3;
 
   async function loadBadgePosition() {
     try {
-      const data = await chrome.storage.local.get("afc_badge_pos");
+      const data = await chrome.storage.local.get(["afc_badge_pos", "afc_badge_content", "afc_badge_autohide"]);
       badgePos = data.afc_badge_pos || "top-right";
+      badgeContent = data.afc_badge_content || "status_title";
+      badgeAutohide = parseInt(data.afc_badge_autohide ?? "3", 10);
     } catch {}
   }
 
@@ -404,9 +846,24 @@
 
     badge.querySelector(".afc-badge-icon").textContent = c.icon;
     badge.querySelector(".afc-badge-title").textContent = `EP ${episode} — ${c.label}`;
-    badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
+
+    // Badge content setting
+    if (badgeContent === "status") {
+      badge.querySelector(".afc-badge-sub").textContent = animeName;
+    } else {
+      badge.querySelector(".afc-badge-sub").textContent = `${animeName}${epTitle ? " • " + epTitle : ""}`;
+    }
+
     lastBadgeHTML = badge.outerHTML;
     startBadgeGuard();
+
+    // Auto-hide badge
+    if (badgeAutohide > 0) {
+      setTimeout(() => {
+        const b = document.getElementById(BADGE_ID);
+        if (b) b.classList.add("afc-hidden");
+      }, badgeAutohide * 1000);
+    }
   }
 
   function showBadgeLoading(animeName, episode) {
@@ -535,14 +992,15 @@
    *  AUTO-RUN: detect & check (with toggle + safeguards)
    * ═══════════════════════════════════════════════════════════════ */
   async function autoCheck() {
-    // SAFEGUARD: skip blocked sites
-    if (isBlockedSite()) return;
-
     // TOGGLE: check if auto-badge is enabled
     try {
       const data = await chrome.storage.local.get("afc_enabled");
       if (data.afc_enabled === false) return;
     } catch {}
+
+    // WHITELIST: only auto-detect on user's streaming sites
+    const onStreamingSite = await isStreamingSite();
+    if (!onStreamingSite) return;
 
     // Load badge position preference
     await loadBadgePosition();
@@ -570,6 +1028,26 @@
         const ep = response.episode;
         const type = ep?.type || "unknown";
         showBadge(type, response.showTitle || info.animeName, info.episode, ep?.title || "");
+
+        // Save to watch history (only if episode is higher than saved)
+        try {
+          const hData = await chrome.storage.local.get("afc_watch_history");
+          let history = hData.afc_watch_history || [];
+          const showName = response.showTitle || info.animeName;
+          const existing = history.find(h => h.name.toLowerCase() === showName.toLowerCase());
+          if (!existing || info.episode > existing.episode) {
+            history = history.filter(h => h.name.toLowerCase() !== showName.toLowerCase());
+            history.unshift({
+              name: showName,
+              episode: info.episode,
+              type,
+              epTitle: ep?.title || "",
+              ts: Date.now(),
+            });
+            if (history.length > 8) history = history.slice(0, 8);
+            await chrome.storage.local.set({ afc_watch_history: history });
+          }
+        } catch {}
 
         // Auto-skip check
         try {
@@ -613,22 +1091,37 @@
     }, 3000);
   }
 
-  // Re-check on URL change (SPA navigation) — throttled
-  // Use pathname+search only (ignore hash changes from video players)
+  // Re-check on URL or hash change (SPA navigation) — throttled
   let lastUrl = location.pathname + location.search;
+  let lastHash = location.hash;
   let navTimer = null;
-  const observer = new MutationObserver(() => {
+
+  function scheduleRecheck() {
+    const old = document.getElementById(BADGE_ID);
+    if (old) old.remove();
+    lastBadgeHTML = null;
+    if (badgeGuardTimer) clearInterval(badgeGuardTimer);
+    if (navTimer) clearTimeout(navTimer);
+    navTimer = setTimeout(autoCheck, 2000);
+  }
+
+  function checkForNavigation() {
     const currentUrl = location.pathname + location.search;
-    if (currentUrl !== lastUrl) {
+    const currentHash = location.hash;
+    if (currentUrl !== lastUrl || currentHash !== lastHash) {
       lastUrl = currentUrl;
-      const old = document.getElementById(BADGE_ID);
-      if (old) old.remove();
-      lastBadgeHTML = null;
-      if (badgeGuardTimer) clearInterval(badgeGuardTimer);
-      if (navTimer) clearTimeout(navTimer);
-      navTimer = setTimeout(autoCheck, 2000);
+      lastHash = currentHash;
+      scheduleRecheck();
     }
-  });
+  }
+
+  const observer = new MutationObserver(checkForNavigation);
+
+  // Hash change listener — for sites like AnimeKai that use #ep=N navigation
+  window.addEventListener("hashchange", checkForNavigation);
+
+  // Polling fallback — some SPAs change hash without triggering events
+  setInterval(checkForNavigation, 1500);
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
   } else {
@@ -643,6 +1136,10 @@
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "GET_ANIME_INFO") {
       sendResponse(detect());
+    }
+    if (msg.type === "RUN_AUTO_CHECK") {
+      autoCheck();
+      sendResponse({ ok: true });
     }
     return true;
   });

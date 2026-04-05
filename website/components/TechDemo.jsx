@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 const PIPELINE = [
@@ -78,11 +80,14 @@ function InfoTooltip({ text }) {
 
   return (
     <span className="info-tooltip-wrap" ref={ref}>
-      <button
+      <span
         className="info-tooltip-btn"
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); setShow((s) => !s) }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShow((s) => !s) } }}
         aria-label="Info"
-      >ⓘ</button>
+      >ⓘ</span>
       {show && <span className="info-tooltip-bubble">{text}</span>}
     </span>
   )
@@ -120,7 +125,6 @@ export default function TechDemo() {
     }
   }, [activeStep, totalSteps, paused])
 
-  // Reveal lines one by one
   useEffect(() => {
     if (paused) return
     const step = PIPELINE[activeStep]
@@ -140,7 +144,6 @@ export default function TechDemo() {
 
   return (
     <div className="tech-demo">
-      {/* Pipeline steps */}
       <div className="tech-pipeline">
         {PIPELINE.map((p, i) => (
           <button
@@ -161,7 +164,6 @@ export default function TechDemo() {
         ))}
       </div>
 
-      {/* Terminal window */}
       <div className="tech-terminal">
         <div className="tech-terminal-bar">
           <span className="tech-dot red" />
@@ -174,9 +176,7 @@ export default function TechDemo() {
         <div className="tech-terminal-body">
           {currentStep.lines.slice(0, visibleLines).map((line, i) => (
             <div key={`${activeStep}-${i}`} className={`tech-line tech-line-${line.type}`}>
-              {line.type === 'comment' && (
-                <span className="tech-comment">{line.text}</span>
-              )}
+              {line.type === 'comment' && <span className="tech-comment">{line.text}</span>}
               {line.type === 'code' && (
                 <span>
                   <span className="tech-code">{line.text}</span>
@@ -193,9 +193,7 @@ export default function TechDemo() {
                   <span className="tech-spinner">⟳</span>
                 </span>
               )}
-              {line.type === 'response' && (
-                <span className="tech-response">{line.text}</span>
-              )}
+              {line.type === 'response' && <span className="tech-response">{line.text}</span>}
               {line.type === 'verdict' && (
                 <div className="tech-verdict-box">
                   <span className="tech-verdict-badge">{line.text}</span>
@@ -204,9 +202,7 @@ export default function TechDemo() {
               )}
             </div>
           ))}
-          {visibleLines < currentStep.lines.length && (
-            <span className="tech-cursor">▋</span>
-          )}
+          {visibleLines < currentStep.lines.length && <span className="tech-cursor">▋</span>}
         </div>
       </div>
     </div>

@@ -727,17 +727,24 @@ nav {
 .feature-card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 2px solid rgba(139, 108, 255, 0.35);
   border-radius: var(--radius);
   padding: 28px;
   transition: border-color 0.2s, transform 0.15s;
 }
 .feature-card:hover {
-  border-color: rgba(139, 108, 255, 0.2);
+  border-color: rgba(139, 108, 255, 0.4);
+  border-top-color: var(--accent);
   transform: translateY(-2px);
 }
-.feature-icon {
-  font-size: 28px;
-  margin-bottom: 14px;
+.feature-num {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  opacity: 0.8;
 }
 .feature-card h3 {
   font-size: 16px;
@@ -1113,12 +1120,12 @@ nav {
   opacity: 0.6;
 }
 
-/* ─── Sponsor Section ────────────────────── */
-.sponsor-section {
-  padding: 0 0 80px;
+/* ─── Stremio Section ────────────────────── */
+.stremio-section {
+  padding: 40px 0 80px;
   text-align: center;
 }
-.sponsor-box {
+.stremio-box {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -1126,40 +1133,283 @@ nav {
   position: relative;
   overflow: hidden;
 }
-.sponsor-box::before {
+.stremio-box::before {
   content: '';
   position: absolute;
   top: -50%; left: -50%;
   width: 200%; height: 200%;
-  background: radial-gradient(circle at 30% 70%, rgba(255, 100, 150, 0.08), transparent 50%);
+  background: radial-gradient(circle at 60% 30%, rgba(114, 83, 237, 0.1), transparent 50%);
   pointer-events: none;
 }
-.sponsor-heart {
-  font-size: 36px;
-  display: block;
+.stremio-icon {
+  font-size: 40px;
   margin-bottom: 12px;
 }
-.sponsor-box h2 {
+.stremio-box h2 {
   font-size: 28px;
   font-weight: 800;
   margin-bottom: 10px;
   position: relative;
 }
-.sponsor-box p {
+.stremio-box > p {
   color: var(--text2);
   font-size: 15px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   position: relative;
-  max-width: 480px;
+  max-width: 520px;
   margin-left: auto;
   margin-right: auto;
 }
-.sponsor-btn {
+.stremio-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  max-width: 600px;
+  margin: 0 auto 28px;
+  text-align: left;
   position: relative;
+}
+.stremio-feature {
+  font-size: 14px;
+  color: var(--text2);
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.stremio-feature span {
+  margin-right: 6px;
+}
+.stremio-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+.stremio-install-btn {
+  background: linear-gradient(135deg, #7253ed, #8b6cff) !important;
+}
+.stremio-install-btn:hover {
+  filter: brightness(1.15);
+}
+.stremio-note {
+  font-size: 12px !important;
+  color: var(--text2) !important;
+  opacity: 0.5;
+  margin-top: 14px !important;
+  margin-bottom: 0 !important;
+}
+
+/* ─── FAQ Section ────────────────────────── */
+.faq-section {
+  padding: 80px 0;
+}
+
+.faq-grid {
+  max-width: 800px;
+  margin: 40px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.faq-item[open] {
+  border-color: rgba(139, 108, 255, 0.3);
+}
+
+.faq-item summary {
+  padding: 20px 24px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '+';
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--accent);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+
+.faq-item[open] summary::after {
+  content: '−';
+}
+
+.faq-item p {
+  padding: 0 24px 20px;
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* ─── Bottom Section (Sponsor + Contact) ── */
+.bottom-section {
+  border-top: 1px solid var(--border);
+  padding: 80px 0 100px;
+}
+.bottom-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+.bottom-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+  flex-shrink: 0;
+  margin: 0 48px;
+}
+.bottom-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.bottom-left-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 40px 0;
+}
+.sponsor-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sponsor-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent3);
+  margin-bottom: 16px;
+}
+.sponsor-col h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+.sponsor-col p {
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+.sponsor-btn {
   background: linear-gradient(135deg, #db61a2, #8b6cff) !important;
+  position: relative;
+  overflow: hidden;
+}
+.sponsor-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+.sponsor-btn:hover::after {
+  left: 160%;
 }
 .sponsor-btn:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.1);
+}
+.contact-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.contact-col h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.contact-col > p {
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+/* ─── Contact Form ───────────────────────── */
+.contact-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.contact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contact-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text2);
+  text-transform: uppercase;
+}
+.contact-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.contact-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 108, 255, 0.1);
+}
+.contact-input::placeholder {
+  color: var(--text2);
+  opacity: 0.45;
+}
+.contact-textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 
 /* ─── Waitlist Form ──────────────────────── */
@@ -1193,6 +1443,13 @@ nav {
 .waitlist-btn {
   padding: 14px 32px;
   white-space: nowrap;
+}
+.send-btn .send-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.send-btn:hover .send-arrow {
+  transform: translateX(4px);
 }
 .waitlist-btn:disabled {
   opacity: 0.5;
@@ -1321,6 +1578,42 @@ footer {
   color: var(--accent);
 }
 
+/* â”€â”€â”€ FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.faq {
+  padding: 80px 0;
+}
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid rgba(139, 108, 255, 0.35);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.faq-item h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.faq-item p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.faq-item p a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.faq-item p a:hover {
+  text-decoration: underline;
+}
+
 /* â”€â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 640px) {
   .nav-links { display: none; }
@@ -1333,6 +1626,10 @@ footer {
   .demo-pill { font-size: 12px; padding: 8px 14px; }
   .section-title { font-size: 28px; }
   .features-grid { grid-template-columns: 1fr; }
+  .faq-grid { grid-template-columns: 1fr; }
+  .contact-row { grid-template-columns: 1fr; }
+  .bottom-grid { flex-direction: column; }
+  .bottom-divider { width: 100%; height: 1px; margin: 40px 0; }
   .steps { grid-template-columns: 1fr; }
   .tech-pipeline { gap: 2px; }
   .tech-pip-step { padding: 6px 8px; }
@@ -1350,3 +1647,107 @@ footer {
     top: 12px;
   }}
 
+
+/* ─── Anime Filler List Pages ────────────── */
+.anime-hero {
+  padding: 40px 0 32px;
+}
+.anime-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 15px;
+  color: var(--text2);
+}
+.anime-stat-divider {
+  color: var(--border);
+}
+.anime-cta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--surface);
+  border: 1px solid rgba(139, 108, 255, 0.2);
+  border-radius: var(--radius);
+  padding: 20px 28px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.anime-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.anime-cta-text strong {
+  font-size: 15px;
+  color: var(--text);
+}
+.anime-cta-text span {
+  font-size: 13px;
+  color: var(--text2);
+}
+.anime-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 80px;
+}
+.anime-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.anime-table thead tr {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
+}
+.anime-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.anime-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.anime-table tr:last-child td {
+  border-bottom: none;
+}
+.anime-ep-row.filler {
+  background: rgba(255, 77, 106, 0.03);
+}
+.anime-ep-row.mixed {
+  background: rgba(255, 179, 71, 0.03);
+}
+.anime-ep-num {
+  width: 60px;
+  font-weight: 600;
+  color: var(--text) !important;
+  font-variant-numeric: tabular-nums;
+}
+.anime-ep-title {
+  color: var(--text) !important;
+}
+.anime-ep-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.anime-ep-badge.canon { background: rgba(0,224,158,0.12); color: var(--canon); }
+.anime-ep-badge.filler { background: rgba(255,77,106,0.12); color: var(--filler); }
+.anime-ep-badge.mixed { background: rgba(255,179,71,0.12); color: var(--mixed); }
+.anime-ep-badge.anime-canon { background: rgba(91,168,255,0.12); color: var(--anime); }
+@media (max-width: 600px) {
+  .anime-cta-banner { flex-direction: column; align-items: flex-start; }
+  .anime-table th:nth-child(2), .anime-table td:nth-child(2) { display: none; }
+}
