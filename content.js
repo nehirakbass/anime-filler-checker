@@ -38,6 +38,8 @@
     "turkanime.tv",
     "anizm.net",
     "anizm.tv",
+    "animekai.to",
+    "animekai.pw",
   ];
 
   /** Check if current site is in the user's streaming sites whitelist */
@@ -146,8 +148,8 @@
       /\/(?:watch|anime|izle|video)\/([a-z0-9][a-z0-9-]+?)\/(?:episode-?|ep-?)?(\d+)/,
       // /slug/season-N/episode-NUM
       /\/([a-z0-9][a-z0-9-]+?)\/(?:season-?\d+\/)?(?:episode|ep)-?(\d+)/,
-      // Catch: slug followed by number at end of path
-      /\/([a-z0-9][a-z0-9-]*[a-z])-(\d{1,4})(?:[-\/]|$)/,
+      // Catch: slug followed by number ONLY at true end of path (no more word segments after)
+      /\/([a-z0-9][a-z0-9-]*[a-z])-(\d{1,4})(?:\/|$)/,
     ];
 
     for (const pat of patterns) {
@@ -337,6 +339,10 @@
     "turkanime.tv":  turkanimeExtract,
     "anizm.net":     anizmExtract,
     "anizm.tv":      anizmExtract,
+
+    /* — AnimeKai — */
+    "animekai.to":   animekaiExtract,
+    "animekai.pw":   animekaiExtract,
   };
 
   /* ---------- Shared extractor functions ---------- */
@@ -621,6 +627,98 @@
         .replace(/\b(Türkçe|Altyazılı|İzle|Izle|HD|Anime)\b/gi, "")
         .replace(/\s{2,}/g, " ")
         .trim();
+    }
+
+    if (animeName && episode) return { animeName, episode };
+    return null;
+  }
+
+  /** AnimeKai — uses #ep=NUMBER hash and breadcrumb for anime name */
+  function animekaiExtract() {
+    let animeName = "";
+
+    // 1. Try heading/title area (many possible selectors for AnimeKai's layout)
+    const headingSelectors = [
+      "h2.film-name a",
+      ".anis-watch-detail .film-name a",
+      ".anis-watch-detail .film-name",
+      "h2.film-name",
+      ".title-name",
+      ".anime-name",
+      ".watch-section .title a",
+      ".detail-name a",
+      ".detail-name",
+    ];
+    for (const sel of headingSelectors) {
+      const el = document.querySelector(sel);
+      if (el) {
+        const txt = el.textContent.trim();
+        if (txt && txt.length > 2 && txt.length < 120) { animeName = txt; break; }
+      }
+    }
+
+    // 2. Breadcrumb: links to actual anime detail pages (require /category/slug, not bare /category)
+    if (!animeName) {
+      const allLinks = document.querySelectorAll("a[href]");
+      for (const el of allLinks) {
+        const href = el.getAttribute("href") || "";
+        if (href.match(/^\/(anime|tv|movie|ona|ova|special)\/[a-z0-9]/i)) {
+          const txt = el.textContent.trim();
+          if (txt && txt.length > 2 && txt.length < 120 &&
+              !/^(Home|TV|Movies?|ONA|OVA|Specials?|Chinese|All|Filter|Genres?|Types?|Sort)$/i.test(txt)) {
+            animeName = txt;
+          }
+        }
+      }
+    }
+
+    // 3. URL slug fallback: /watch/fairy-tail-100-years-quest-rm4j → "Fairy Tail 100 Years Quest"
+    //    AnimeKai appends a short alphanumeric hash (3-5 chars, always contains digits) to slugs
+    if (!animeName) {
+      const slugMatch = location.pathname.match(/\/watch\/([a-z0-9][a-z0-9-]+)/i);
+      if (slugMatch) {
+        let slug = slugMatch[1];
+        // Strip trailing hash: must contain at least one digit (e.g. -rm4j, -126r9, -dk6r)
+        // This avoids stripping real words like -lock, -war, -sub, -dub
+        slug = slug.replace(/-(?=[a-z0-9]*\d)[a-z0-9]{2,6}$/i, "");
+        const name = slugToName(slug);
+        if (name && isValidAnimeName(name)) animeName = name;
+      }
+    }
+
+    // Episode from hash: #ep=25
+    let episode = 0;
+    const hashMatch = location.hash.match(/[#&]ep=(\d+)/i);
+    if (hashMatch) {
+      episode = parseInt(hashMatch[1], 10);
+    }
+
+    // Fallback: active episode in episode list
+    if (!episode) {
+      const activeEp = document.querySelector(
+        ".ep-item.active, .episode-item.active, .episodes .active, " +
+        ".epi-item.active, .episode.active, [data-number].active"
+      );
+      if (activeEp) {
+        const num = (activeEp.getAttribute("data-number") || activeEp.textContent || "").match(/(\d+)/);
+        if (num) episode = parseInt(num[1], 10);
+      }
+    }
+
+    // Fallback: "You are watching Episode N" text on page
+    if (!episode) {
+      const body = document.body?.textContent || "";
+      const watchingMatch = body.match(/(?:watching|izliyorsunuz)\s+Episode\s+(\d+)/i);
+      if (watchingMatch) episode = parseInt(watchingMatch[1], 10);
+    }
+
+    // Fallback: page title "Watch Anime Name Episode N Sub/Dub - AnimeKai"
+    if (!animeName || !episode) {
+      const titleMatch = document.title.match(/(?:Watch\s+)?(.+?)\s+Episode\s+(\d+)/i);
+      if (titleMatch) {
+        if (!animeName) animeName = titleMatch[1].replace(/^Watch\s+/i, "").trim();
+        if (!episode) episode = parseInt(titleMatch[2], 10);
+      }
     }
 
     if (animeName && episode) return { animeName, episode };
@@ -993,22 +1091,37 @@
     }, 3000);
   }
 
-  // Re-check on URL change (SPA navigation) — throttled
-  // Use pathname+search only (ignore hash changes from video players)
+  // Re-check on URL or hash change (SPA navigation) — throttled
   let lastUrl = location.pathname + location.search;
+  let lastHash = location.hash;
   let navTimer = null;
-  const observer = new MutationObserver(() => {
+
+  function scheduleRecheck() {
+    const old = document.getElementById(BADGE_ID);
+    if (old) old.remove();
+    lastBadgeHTML = null;
+    if (badgeGuardTimer) clearInterval(badgeGuardTimer);
+    if (navTimer) clearTimeout(navTimer);
+    navTimer = setTimeout(autoCheck, 2000);
+  }
+
+  function checkForNavigation() {
     const currentUrl = location.pathname + location.search;
-    if (currentUrl !== lastUrl) {
+    const currentHash = location.hash;
+    if (currentUrl !== lastUrl || currentHash !== lastHash) {
       lastUrl = currentUrl;
-      const old = document.getElementById(BADGE_ID);
-      if (old) old.remove();
-      lastBadgeHTML = null;
-      if (badgeGuardTimer) clearInterval(badgeGuardTimer);
-      if (navTimer) clearTimeout(navTimer);
-      navTimer = setTimeout(autoCheck, 2000);
+      lastHash = currentHash;
+      scheduleRecheck();
     }
-  });
+  }
+
+  const observer = new MutationObserver(checkForNavigation);
+
+  // Hash change listener — for sites like AnimeKai that use #ep=N navigation
+  window.addEventListener("hashchange", checkForNavigation);
+
+  // Polling fallback — some SPAs change hash without triggering events
+  setInterval(checkForNavigation, 1500);
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
   } else {

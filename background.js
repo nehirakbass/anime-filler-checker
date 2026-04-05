@@ -142,39 +142,49 @@ async function searchAndFetch(animeName) {
     shows.push({ href, text, textNorm: text.toLowerCase().replace(/[^a-z0-9]/g, "") });
   }
 
-  // Try matching with the original detected name first
-  const namesToTry = [animeName];
-
-  // Use Jikan API to resolve the correct anime title
-  try {
-    const jikanUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&type=tv&limit=1`;
-    const jikanRes = await fetch(jikanUrl);
-    if (jikanRes.ok) {
-      const jikanJson = await jikanRes.json();
-      const jikanAnime = jikanJson.data?.[0];
-      if (jikanAnime) {
-        if (jikanAnime.title) namesToTry.push(jikanAnime.title);
-        if (jikanAnime.title_english) namesToTry.push(jikanAnime.title_english);
-        for (const t of (jikanAnime.titles || [])) {
-          if (t.title) namesToTry.push(t.title);
-        }
-      }
-    }
-  } catch {}
-
-  // Find best match across all name variants
+  // 1. Try matching with the original detected name first (highest priority)
+  const detectedNorm = animeName.toLowerCase().replace(/[^a-z0-9]/g, "");
   let best = null;
   let bestScore = 0;
 
-  for (const name of namesToTry) {
-    const nameNorm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-    for (const show of shows) {
-      const score = similarity(nameNorm, show.textNorm);
-      if (score > bestScore) {
-        bestScore = score;
-        best = show;
-      }
+  for (const show of shows) {
+    const score = similarity(detectedNorm, show.textNorm);
+    if (score > bestScore) {
+      bestScore = score;
+      best = show;
     }
+  }
+
+  // 2. If detected name already has a strong match (≥0.85), skip Jikan entirely
+  //    This prevents Jikan returning a parent series that outscores the correct match
+  if (bestScore < 0.85) {
+    // Use Jikan API to resolve the correct anime title
+    try {
+      const jikanUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(animeName)}&type=tv&limit=1`;
+      const jikanRes = await fetch(jikanUrl);
+      if (jikanRes.ok) {
+        const jikanJson = await jikanRes.json();
+        const jikanAnime = jikanJson.data?.[0];
+        if (jikanAnime) {
+          const jikanNames = [];
+          if (jikanAnime.title) jikanNames.push(jikanAnime.title);
+          if (jikanAnime.title_english) jikanNames.push(jikanAnime.title_english);
+          for (const t of (jikanAnime.titles || [])) {
+            if (t.title) jikanNames.push(t.title);
+          }
+          for (const name of jikanNames) {
+            const nameNorm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+            for (const show of shows) {
+              const score = similarity(nameNorm, show.textNorm);
+              if (score > bestScore) {
+                bestScore = score;
+                best = show;
+              }
+            }
+          }
+        }
+      }
+    } catch {}
   }
 
   if (!best || bestScore < 0.5) {
