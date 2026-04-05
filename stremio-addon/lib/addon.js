@@ -224,7 +224,7 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
       for (let n = epNum + 1; n <= epNum + 50; n++) {
         const candidate = fillerData.episodes[n];
         if (!candidate) break;
-        if (candidate.type !== "filler" && candidate.type !== "mixed") {
+        if (candidate.type !== "filler") {
           nextCanon = candidate;
           break;
         }
@@ -289,12 +289,12 @@ builder.defineStreamHandler(async ({ type, id }) => {
 
     let description = label;
 
-    // If filler/mixed, show next canon episode
+    // If filler/mixed, show next non-filler episode
     if (episode.type === "filler" || episode.type === "mixed") {
       for (let n = epNum + 1; n <= epNum + 50; n++) {
         const candidate = fillerData.episodes[n];
         if (!candidate) break;
-        if (candidate.type !== "filler" && candidate.type !== "mixed") {
+        if (candidate.type !== "filler") {
           description += `\n▶ Next canon: ${candidate.title || `Episode ${candidate.number}`}`;
           break;
         }
