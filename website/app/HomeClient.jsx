@@ -7,6 +7,7 @@ import TechDemo from '@/components/TechDemo'
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/fnlpgfcmglenllblijbciadeldljjebj'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
+const STREMIO_MANIFEST = 'https://animefillerchecker.com/stremio/manifest.json'
 
 export default function HomeClient() {
   const [toast, setToast] = useState(null)
@@ -69,6 +70,27 @@ export default function HomeClient() {
                 <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" width="20" height="20" />
                 Add to Firefox
               </a>
+              <button
+                className="btn-primary btn-stremio"
+                onClick={() => {
+                  const deepLink = `stremio://${STREMIO_MANIFEST.replace('https://', '')}`
+                  const fallback = () => {
+                    navigator.clipboard.writeText(STREMIO_MANIFEST)
+                    showToast('Manifest URL copied! Open Stremio → Addons → paste the URL to install.')
+                  }
+                  try {
+                    const w = window.open(deepLink, '_self')
+                    setTimeout(() => {
+                      if (!document.hidden) fallback()
+                    }, 1500)
+                  } catch {
+                    fallback()
+                  }
+                }}
+              >
+                <img src="https://cdn.simpleicons.org/stremio/white" alt="Stremio" width="20" height="20" />
+                Add to Stremio
+              </button>
               <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
                 <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="18" height="18" /> View on GitHub
               </a>
@@ -164,7 +186,7 @@ export default function HomeClient() {
 
               <div className="faq-item">
                 <h3>Can I use it without installing a browser extension?</h3>
-                <p>Currently no, but the extension is free and easy to install and you dont need to create an account. For the future there is a stremio addon in the works. Stay tuned!</p>
+                <p>Yes! There&apos;s now a <a href={STREMIO_MANIFEST}>Stremio addon</a> that shows filler badges directly in the episode list  no browser extension needed. Just copy the manifest URL into Stremio&apos;s addon settings and you&apos;ll see the filler status for every episode.</p>
               </div>
             </div>
           </div>
@@ -264,6 +286,7 @@ export default function HomeClient() {
             <a href="https://github.com/nehirakbass/anime-filler-checker" target="_blank" rel="noopener">GitHub</a>
             <a href={CHROME_URL}>Chrome Web Store</a>
             <a href={FIREFOX_URL}>Firefox Add-ons</a>
+            <a href={STREMIO_MANIFEST}>Stremio Addon</a>
           </div>
           <div className="footer-copy" style={{ marginTop: '12px' }}>
             Powered by the great community at{' '}

@@ -197,6 +197,16 @@ nav {
 .btn-firefox:hover {
   box-shadow: 0 8px 32px rgba(255, 51, 102, 0.45);
 }
+.btn-stremio {
+  background: linear-gradient(135deg, #7b5bf5, #5a3fd6);
+  box-shadow: 0 4px 24px rgba(123, 91, 245, 0.35);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.btn-stremio:hover {
+  box-shadow: 0 8px 32px rgba(123, 91, 245, 0.45);
+}
 .btn-secondary {
   display: inline-flex;
   align-items: center;

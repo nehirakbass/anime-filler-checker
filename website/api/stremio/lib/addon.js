@@ -26,7 +26,7 @@ const manifest = {
     "Shows filler status in the stream list so you know before you hit play. " +
     "Visit https://animefillerchecker.com for more info and gain access to browser extensions.",
   logo: "https://animefillerchecker.com/icon128.png",
-  resources: ["meta", "subtitles", "stream"],
+  resources: ["meta", "subtitles"],
   types: ["series"],
   catalogs: [],
   idPrefixes: ["tt"],
@@ -255,73 +255,6 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
   } catch (err) {
     console.error(`[SUBTITLES] Error for ${id}:`, err.message);
     return { subtitles: [] };
-  }
-});
-
-/* ═══════════════════════════════════════════════════
- *  STREAM HANDLER — Filler status badge in stream list
- * ═══════════════════════════════════════════════════ */
-
-const STREAM_LABELS = {
-  canon:      "✅ CANON — Manga faithful, safe to watch",
-  filler:     "⛔ FILLER — Not from the manga, safe to skip!",
-  mixed:      "⚠️ MIXED — Contains both canon and filler",
-  anime_canon:"🔵 ANIME CANON — Anime-original but plot-relevant",
-  unknown:    "❓ UNKNOWN — No filler data available",
-};
-
-builder.defineStreamHandler(async ({ type, id }) => {
-  if (type !== "series") return { streams: [] };
-
-  try {
-    const parsed = parseEpisodeFromVideoId(id);
-    if (!parsed) return { streams: [] };
-
-    const seriesId = getSeriesId(id);
-    const animeName = await resolveAnimeName(seriesId);
-    if (!animeName) return { streams: [] };
-
-    const epNum = await resolveAbsoluteEpisode(seriesId, parsed.season, parsed.episode);
-
-    const fillerData = await fetchFillerData(animeName);
-    if (!fillerData || fillerData.totalEpisodes === 0) return { streams: [] };
-
-    const episode = fillerData.episodes[epNum];
-    if (!episode) return { streams: [] };
-
-    const label = STREAM_LABELS[episode.type] || STREAM_LABELS.unknown;
-    const emoji = TYPE_EMOJI[episode.type] || "❓";
-    const shortLabel = SHORT_LABELS[episode.type] || "UNKNOWN";
-
-    let description = label;
-
-    // If filler/mixed, show next non-filler episode
-    if (episode.type === "filler" || episode.type === "mixed") {
-      for (let n = epNum + 1; n <= epNum + 50; n++) {
-        const candidate = fillerData.episodes[n];
-        if (!candidate) break;
-        if (candidate.type !== "filler") {
-          description += `\n▶ Next canon: ${candidate.title || `Episode ${candidate.number}`}`;
-          break;
-        }
-      }
-    }
-
-    return {
-      streams: [
-        {
-          name: `${emoji} ${shortLabel}`,
-          description,
-          externalUrl: fillerData.url || "https://www.animefillerlist.com",
-          behaviorHints: {
-            notWebReady: true,
-          },
-        },
-      ],
-    };
-  } catch (err) {
-    console.error(`[STREAM] Error for ${id}:`, err.message);
-    return { streams: [] };
   }
 });
 
