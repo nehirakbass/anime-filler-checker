@@ -311,7 +311,7 @@ builder.defineStreamHandler(async ({ type, id }) => {
         {
           name: `${emoji} ${shortLabel}`,
           description,
-          externalUrl: `${fillerData.url || "https://www.animefillerlist.com"}`,
+          externalUrl: `stremio:///detail/series/${seriesId}`,
         },
       ],
     };
