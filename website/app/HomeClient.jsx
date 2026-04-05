@@ -7,7 +7,7 @@ import TechDemo from '@/components/TechDemo'
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/fnlpgfcmglenllblijbciadeldljjebj'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
-const STREMIO_MANIFEST = 'https://animefillerchecker.com/stremio/manifest.json'
+const STREMIO_MANIFEST = 'https://www.animefillerchecker.com/stremio/manifest.json'
 
 export default function HomeClient() {
   const [toast, setToast] = useState(null)
