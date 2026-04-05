@@ -13,7 +13,8 @@
     "@vercel/analytics": "^2.0.1",
     "next": "^15.3.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "stremio-addon-sdk": "^1.6.10"
   },
   "devDependencies": {
     "cheerio": "^1.0.0"
