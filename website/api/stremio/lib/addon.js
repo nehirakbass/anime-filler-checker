@@ -24,7 +24,7 @@ const manifest = {
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
     "Shows filler status in the stream list so you know before you hit play. " +
-    "Visit https://animefillerchecker.com for more info and gain access to browser extensions.",
+    "Visit animefillerchecker.com for more info and gain access to browser extensions.",
   logo: "https://animefillerchecker.com/icon128.png",
   resources: ["meta", "subtitles", "stream"],
   types: ["series"],

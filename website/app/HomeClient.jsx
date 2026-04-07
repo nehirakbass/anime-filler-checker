@@ -1,9 +1,16 @@
 ﻿'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import InteractiveDemo from '@/components/InteractiveDemo'
 import TechDemo from '@/components/TechDemo'
+import { Sun, Moon, Star } from 'lucide-react'
+
+const GitHubIcon = ({ size = 16 }) => (
+  <svg viewBox="0 0 16 16" width={size} height={size} fill="currentColor">
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+  </svg>
+)
 
 const CHROME_URL = 'https://chromewebstore.google.com/detail/anime-filler-checker/fnlpgfcmglenllblijbciadeldljjebj'
 const FIREFOX_URL = 'https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/'
@@ -11,6 +18,20 @@ const STREMIO_MANIFEST = 'https://www.animefillerchecker.com/stremio/manifest.js
 
 export default function HomeClient() {
   const [toast, setToast] = useState(null)
+  const [theme, setTheme] = useState('dark')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') || 'dark'
+    setTheme(saved)
+    document.documentElement.setAttribute('data-theme', saved)
+  }, [])
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('theme', next)
+  }
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -43,7 +64,24 @@ export default function HomeClient() {
           <ul className="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#dev-log">Dev Log</a></li>
             <li><Link href="/privacy">Privacy</Link></li>
+            <li>
+              <a
+                href="https://github.com/nehirakbass/anime-filler-checker"
+                className="github-star-btn"
+                target="_blank"
+                rel="noopener"
+              >
+                <Star size={14} />
+                <span>Star</span>
+              </a>
+            </li>
+            <li>
+              <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -92,7 +130,7 @@ export default function HomeClient() {
                 Add to Stremio
               </button>
               <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
-                <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="18" height="18" /> View on GitHub
+                <GitHubIcon size={18} /> View on GitHub
               </a>
             </div>
 
@@ -192,6 +230,37 @@ export default function HomeClient() {
           </div>
         </section>
 
+        {/* Dev Log */}
+        <section id="dev-log" className="devlog-section">
+          <div className="container">
+            <p className="section-eyebrow">Dev Log</p>
+            <h2 className="section-title">Behind the scenes</h2>
+            <p className="section-subtitle">Honest updates on what I&apos;m working on, what&apos;s hard, and what&apos;s next.</p>
+
+            <div className="devlog-entries">
+              <article className="devlog-entry">
+                <div className="devlog-meta">
+                  <time className="devlog-date">Apr 7, 2026</time>
+                  <span className="devlog-tag tag-wip">Work in Progress</span>
+                </div>
+                <h3 className="devlog-title">Netflix Support — Why It&apos;s Taking a While</h3>
+                <div className="devlog-body">
+                  <p>
+                    Currently AnimeFillerChecker does not work with Netflix. Netflix is a bit weird about this &mdash; in order to achieve it I need to deeply inspect DOM elements, but even that&apos;s not enough because <strong>anime names are localized</strong>. For example, if you&apos;re watching My Hero Academia but your Netflix is set to Turkish, you get the Turkish title instead of the original.
+                  </p>
+                  <p>
+                    After retrieving the localized name I&apos;d need to reverse-lookup the original title via the Jikan API, then match it on AnimeFillerList.com. But even <em>then</em> it&apos;s not enough &mdash; <strong>episode titles are localized too</strong>, and I can&apos;t trust episode numbers because Netflix doesn&apos;t always label seasons as 1, 2, 3. Sometimes they use arc names instead. Go to One Piece on Netflix and you&apos;ll see &ldquo;Egghead Arc Part 1&rdquo; rather than a season number.
+                  </p>
+                  <p>
+                    So I&apos;d need to resolve episode numbers from titles, across multiple languages, and I&apos;m not sure how many languages Jikan supports. I&apos;m still figuring this out &mdash; I know it&apos;s possible, it just needs careful work.
+                  </p>
+                  <p>If you've solved something like this before or have ideas, I'd genuinely love to hear it.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
         {/* Sponsor + Contact */}
         <section className="bottom-section">
           <div className="container">
@@ -202,7 +271,7 @@ export default function HomeClient() {
                 <div className="sponsor-col">
                   <p className="sponsor-eyebrow">Free to use &amp; ad-free</p>
                   <h2>Kept alive by one person.<br />Supported by people like you.</h2>
-                  <p>If this extension has ever saved you from sitting through a Naruto flashback arc, consider sponsoring.</p>
+                  <p>If this extension has ever saved you from sitting through a Naruto flashback arc, consider supporting.</p>
                   <a href="https://github.com/sponsors/nehirakbass" className="btn-primary sponsor-btn" target="_blank" rel="noopener">
                     Support the project
                   </a>
@@ -215,7 +284,7 @@ export default function HomeClient() {
                   <h2>Want to contribute?</h2>
                   <p>Have a feature in mind or found a bug? The repo is open  PRs and issues are always welcome.</p>
                   <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
-                    <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" width="16" height="16" /> View on GitHub
+                    <GitHubIcon size={16} /> View on GitHub
                   </a>
                 </div>
               </div>
