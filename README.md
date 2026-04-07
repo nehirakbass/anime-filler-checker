@@ -53,11 +53,20 @@ Install directly in Stremio:
 See [stremio-addon/](stremio-addon/) for source code and self-hosting instructions.
 
 ## How It Works
+
+### Browser Extension
 1. **URL Analysis** — Parses the current page URL for anime name and episode patterns
 2. **Page Title Scan** — Reads the `<title>` tag to confirm or extract episode info
 3. **DOM Deep Search** — Searches page elements for episode titles and numbers
 4. **AnimeFillerList Lookup** — Fetches filler/canon data from AnimeFillerList.com
 5. **Verdict** — Renders a floating badge with the result + optional auto-skip to next canon episode
+
+### Stremio Addon (3-Tier Lookup)
+1. **Bundle Lookup** — Checks `completedAnime.json` (pre-built data for 360+ finished anime). Instant, zero API calls.
+2. **Whitelist Check** — Checks `showList.json` (371 AFL anime). Non-anime titles (Chuck, Loki, etc.) are rejected immediately.
+3. **Live Scrape** — Only for ongoing anime in the whitelist, fetches fresh data from AnimeFillerList.com.
+
+Bundles are regenerated weekly via GitHub Actions.
 
 MAL score, member count, and airing status are shown alongside the result.
 
@@ -70,13 +79,13 @@ MAL score, member count, and airing status are shown alongside the result.
 ├── popup.html/js          # Extension popup UI
 ├── icons/                 # Extension & favicon icons
 ├── firefox-build/         # Firefox-specific build (MV3 + gecko config)
-├── stremio-addon/         # Stremio addon (Node.js, deployable to Vercel)
+├── stremio-addon/         # Standalone Stremio addon (Node.js)
 │   ├── api/               # Vercel serverless function
 │   └── lib/               # Shared addon logic
-└── website/               # Landing page (React + Vite, deployed on Vercel)
-    ├── src/
-    │   ├── pages/         # Home, Privacy
-    │   └── components/    # InteractiveDemo, TechDemo
+└── website/               # Landing page + Stremio addon (Next.js, Vercel)
+    ├── api/stremio/lib/   # Addon logic + JSON bundles
+    ├── app/               # Next.js App Router pages
+    ├── scripts/           # Bundle scraper (scrape-all-shows.js)
     └── public/            # Static assets
 ```
 

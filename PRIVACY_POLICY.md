@@ -45,7 +45,9 @@ No other network requests are made. No data is sent to any analytics service, ad
 
 ## Stremio Addon
 The Stremio addon is a server-side component hosted on Vercel. It processes anime metadata requests from Stremio clients:
-- It fetches publicly available filler data from AnimeFillerList.com and metadata from the Jikan API on behalf of the user.
+- For most anime, filler data is served from pre-built JSON bundles (`completedAnime.json`, `showList.json`) included in the deployment. These bundles contain only publicly available episode classifications and involve no external network requests.
+- For ongoing anime not in the bundles, it fetches data from AnimeFillerList.com and metadata from the Jikan API.
+- Non-anime titles are rejected immediately via the whitelist — no external requests are made.
 - It does NOT log, store, or track any user data, IP addresses, or viewing habits.
 - No analytics or telemetry of any kind is collected.
 - The addon is open source and can be self-hosted.
