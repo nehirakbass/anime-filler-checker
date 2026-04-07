@@ -13,7 +13,7 @@ const builder = require("../../../api/stremio/lib/addon");
 const addonInterface = builder.getInterface();
 const router = getRouter(addonInterface);
 
-module.exports = (req, res) => {
+export default function handler(req, res) {
   // Next.js catch-all gives us the path segments via req.query.path
   // e.g. ["manifest.json"] or ["meta", "series", "tt0409591.json"]
   const pathSegments = req.query.path || [];
@@ -32,4 +32,4 @@ module.exports = (req, res) => {
     res.statusCode = 404;
     res.end(JSON.stringify({ err: "not found" }));
   });
-};
+}
