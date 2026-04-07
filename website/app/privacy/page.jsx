@@ -20,12 +20,12 @@ export default function Privacy() {
 
       <div className="privacy-content">
         <h1>Privacy Policy</h1>
-        <p className="subtitle">Last updated: March 2026</p>
+        <p className="subtitle">Last updated: April 2026</p>
 
         <h2>Overview</h2>
         <p>
-          Anime Filler Checker is a browser extension that detects anime episode information from web
-          pages and checks if episodes are filler using publicly available data from AnimeFillerList.com.
+          Anime Filler Checker is a browser extension and Stremio addon that detects anime episode information
+          and checks if episodes are filler using publicly available data from AnimeFillerList.com.
         </p>
 
         <h2>Data Collection</h2>
@@ -53,6 +53,14 @@ export default function Privacy() {
             is cached locally for 5 days. This contains only publicly available data (score, member count,
             airing status).
           </li>
+          <li>
+            <strong>Season data cache</strong>: Anime season/sequel chain data fetched from the Jikan API
+            is cached locally for 14 days. This is used to calculate correct episode numbers for multi-season anime.
+          </li>
+          <li>
+            <strong>Watch history</strong>: Your last 8 watched anime episodes are stored locally to show
+            recent activity in the extension popup. This data never leaves your device.
+          </li>
         </ul>
         <p>This cached data:</p>
         <ul>
@@ -76,10 +84,20 @@ export default function Privacy() {
         <h2>Permissions</h2>
         <ul>
           <li><strong>activeTab</strong>: Used to read the current page&apos;s DOM and URL to detect the anime name and episode number being watched. No page content is stored or transmitted.</li>
-          <li><strong>storage</strong>: Used to cache anime filler data locally for faster subsequent lookups.</li>
+          <li><strong>storage</strong>: Used to cache anime filler data, watch history, and user preferences locally for faster subsequent lookups.</li>
           <li><strong>host_permissions (animefillerlist.com)</strong>: Required to fetch episode data from AnimeFillerList.com.</li>
-          <li><strong>host_permissions (api.jikan.moe)</strong>: Required to fetch anime scores and info from MyAnimeList via the Jikan API.</li>
+          <li><strong>host_permissions (api.jikan.moe)</strong>: Required to fetch anime metadata (scores, season info, sequel chains) from MyAnimeList via the Jikan API.</li>
+          <li><strong>content_scripts (all_urls)</strong>: The extension runs on all URLs but only activates on user-configured streaming sites (e.g. Crunchyroll, HiAnime). On non-streaming sites, the extension does nothing. The extension reads only anime-related DOM elements (titles, episode numbers) and does not access, store, or transmit any other page content.</li>
         </ul>
+
+        <h2>Stremio Addon</h2>
+        <p>
+          The Stremio addon is a server-side component hosted on Vercel. It processes anime metadata requests
+          from Stremio clients. It fetches publicly available filler data from AnimeFillerList.com and metadata
+          from the Jikan API on behalf of the user. It does NOT log, store, or track any user data, IP addresses,
+          or viewing habits. No analytics or telemetry of any kind is collected. The addon is open source and
+          can be self-hosted.
+        </p>
 
         <h2>Third-Party Services</h2>
         <ul>
@@ -88,6 +106,9 @@ export default function Privacy() {
           </li>
           <li>
             <a href="https://jikan.moe" target="_blank" rel="noopener">Jikan API</a> — Public REST API for MyAnimeList data. We are not affiliated with Jikan or MyAnimeList.
+          </li>
+          <li>
+            <a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a> — Hosting platform for the Stremio addon and project website. See their privacy policy at vercel.com/legal/privacy-policy.
           </li>
         </ul>
 
