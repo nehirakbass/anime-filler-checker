@@ -12,7 +12,6 @@ const {
   getFillerStats,
 } = require("./fillerData");
 const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
-const { getBadgeDataURI } = require("./badges");
 
 /* ═══════════════════════════════════════════════════
  *  ADDON MANIFEST
@@ -165,7 +164,6 @@ builder.defineMetaHandler(async ({ type, id }) => {
         season: 1,
         episode: epNum,
         overview: `${emoji} ${label} — ${ep.title || `Episode ${epNum}`}`,
-        thumbnail: getBadgeDataURI(ep.type, epNum),
         released: new Date(0).toISOString(),
       });
     }
