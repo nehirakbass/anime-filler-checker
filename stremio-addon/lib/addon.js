@@ -65,7 +65,7 @@ function shouldShowVerdict(config, type) {
   const key = CONFIG_TYPE_MAP[type];
   if (!key) return true;
   if (!config || Object.keys(config).length === 0) return true;
-  return config[key] === "checked";
+  return !!config[key];
 }
 
 const TYPE_EMOJI = {
@@ -258,7 +258,7 @@ builder.defineSubtitlesHandler(async ({ type, id, config }) => {
       }
     }
 
-    const srtContent = generateSubtitle(episode, { nextCanon, hideNextTitle: config?.hideNextTitle === "checked" });
+    const srtContent = generateSubtitle(episode, { nextCanon, hideNextTitle: !!config?.hideNextTitle });
     const label = SHORT_LABELS[episode.type] || "UNKNOWN";
     const emoji = TYPE_EMOJI[episode.type] || "❓";
     const srtBase64 = Buffer.from(srtContent, "utf-8").toString("base64");
@@ -323,7 +323,7 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
         const candidate = fillerData.episodes[n];
         if (!candidate) break;
         if (candidate.type !== "filler") {
-          const nextLabel = config?.hideNextTitle === "checked"
+          const nextLabel = config?.hideNextTitle
             ? `Episode ${candidate.number}`
             : (candidate.title || `Episode ${candidate.number}`);
           description += `\n▶ Next canon: ${nextLabel}`;
