@@ -22,7 +22,7 @@ const landingHTML = landingTemplate(addonInterface.manifest).replace(
   </style></head>`
 ).replaceAll(
   "window.location.host",
-  "window.location.host.replace('www.', '') + window.location.pathname.replace(/\\/configure$/, '')"
+  "window.location.host + window.location.pathname.replace(/\\/configure$/, '')"
 );
 
 export default function handler(req, res) {
