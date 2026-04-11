@@ -30,11 +30,14 @@ function generateSubtitle(episode, options = {}) {
   }
 
   if (nextCanon && (type === "filler" || type === "mixed")) {
+    const skip = nextCanon.number - (episode?.number || 0);
+    const ahead = skip === 1 ? "next episode" : `${skip} episodes ahead`;
+    const ep = `Ep ${nextCanon.number}`;
     const nextLabel = hideNextTitle
-      ? `${nextCanon.number}`
-      : `${nextCanon.number} — ${nextCanon.title || ""}`;
+      ? `${ahead} (${ep})`
+      : (nextCanon.title ? `${ahead} (${ep}) — ${nextCanon.title}` : `${ahead} (${ep})`);
     lines.push(
-      `Next canon episode: ${nextLabel}`
+      `Next canon: ${nextLabel}`
     );
   }
 
