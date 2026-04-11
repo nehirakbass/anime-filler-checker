@@ -40,7 +40,8 @@ module.exports = (req, res) => {
   }
 
   // Serve landing/configure page
-  if (strippedUrl === "/" || strippedUrl === "/configure") {
+  const cleanUrl = strippedUrl.split("?")[0].replace(/\/$/, "");
+  if (cleanUrl === "/" || cleanUrl === "" || cleanUrl === "/configure") {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(landingHTML);
     return;

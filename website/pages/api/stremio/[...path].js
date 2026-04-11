@@ -41,7 +41,8 @@ export default function handler(req, res) {
   }
 
   // Serve landing/configure page
-  if (req.url === "/configure") {
+  const cleanUrl = req.url.split("?")[0].replace(/\/$/, "");
+  if (cleanUrl === "/configure" || cleanUrl === "") {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(landingHTML);
     return;
