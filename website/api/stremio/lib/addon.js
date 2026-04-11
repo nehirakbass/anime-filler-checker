@@ -18,7 +18,7 @@ const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
  * ═══════════════════════════════════════════════════ */
 const manifest = {
   id: "community.animefiller",
-  version: "1.0.0",
+  version: "1.1.0",
   name: "Anime Filler Checker",
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
@@ -29,8 +29,15 @@ const manifest = {
   types: ["series"],
   catalogs: [],
   idPrefixes: ["tt"],
+  config: [
+    { key: "showCanon", type: "checkbox", title: "✅ CANON — Manga faithful, safe to watch", default: "checked" },
+    { key: "showFiller", type: "checkbox", title: "⛔ FILLER — Not from the manga, safe to skip", default: "checked" },
+    { key: "showMixed", type: "checkbox", title: "⚠️ MIXED — Contains both canon and filler", default: "checked" },
+    { key: "showAnimeCanon", type: "checkbox", title: "🔵 ANIME CANON — Anime-original but plot-relevant", default: "checked" },
+    { key: "hideNextTitle", type: "checkbox", title: "🔒 Hide spoilers — Only show episode number in next canon hint" },
+  ],
   behaviorHints: {
-    configurable: false,
+    configurable: true,
     configurationRequired: false,
   },
   homepage: "https://animefillerchecker.com",
@@ -47,6 +54,20 @@ const builder = new addonBuilder(manifest);
 /* ═══════════════════════════════════════════════════
  *  HELPERS
  * ═══════════════════════════════════════════════════ */
+
+const CONFIG_TYPE_MAP = {
+  canon: "showCanon",
+  filler: "showFiller",
+  mixed: "showMixed",
+  anime_canon: "showAnimeCanon",
+};
+
+function shouldShowVerdict(config, type) {
+  const key = CONFIG_TYPE_MAP[type];
+  if (!key) return true;
+  if (!config || Object.keys(config).length === 0) return true;
+  return config[key] === "checked";
+}
 
 const TYPE_EMOJI = {
   canon: "✅",
@@ -201,7 +222,7 @@ builder.defineMetaHandler(async ({ type, id }) => {
 /* ═══════════════════════════════════════════════════
  *  SUBTITLES HANDLER
  * ═══════════════════════════════════════════════════ */
-builder.defineSubtitlesHandler(async ({ type, id }) => {
+builder.defineSubtitlesHandler(async ({ type, id, config }) => {
   if (type !== "series") return { subtitles: [] };
 
   try {
@@ -223,6 +244,8 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
     const episode = fillerData.episodes[epNum];
     if (!episode) return { subtitles: [] };
 
+    if (!shouldShowVerdict(config, episode.type)) return { subtitles: [] };
+
     let nextCanon = null;
     if (episode.type === "filler" || episode.type === "mixed") {
       for (let n = epNum + 1; n <= epNum + 50; n++) {
@@ -235,7 +258,7 @@ builder.defineSubtitlesHandler(async ({ type, id }) => {
       }
     }
 
-    const srtContent = generateSubtitle(episode, { nextCanon });
+    const srtContent = generateSubtitle(episode, { nextCanon, hideNextTitle: config?.hideNextTitle === "checked" });
     const label = SHORT_LABELS[episode.type] || "UNKNOWN";
     const emoji = TYPE_EMOJI[episode.type] || "❓";
     const srtBase64 = Buffer.from(srtContent, "utf-8").toString("base64");
@@ -268,7 +291,7 @@ const STREAM_LABELS = {
   unknown:    "❓ UNKNOWN — No filler data available",
 };
 
-builder.defineStreamHandler(async ({ type, id }) => {
+builder.defineStreamHandler(async ({ type, id, config }) => {
   if (type !== "series") return { streams: [] };
 
   try {
@@ -287,6 +310,8 @@ builder.defineStreamHandler(async ({ type, id }) => {
     const episode = fillerData.episodes[epNum];
     if (!episode) return { streams: [] };
 
+    if (!shouldShowVerdict(config, episode.type)) return { streams: [] };
+
     const label = STREAM_LABELS[episode.type] || STREAM_LABELS.unknown;
     const emoji = TYPE_EMOJI[episode.type] || "❓";
     const shortLabel = SHORT_LABELS[episode.type] || "UNKNOWN";
@@ -298,7 +323,10 @@ builder.defineStreamHandler(async ({ type, id }) => {
         const candidate = fillerData.episodes[n];
         if (!candidate) break;
         if (candidate.type !== "filler") {
-          description += `\n▶ Next canon: ${candidate.title || `Episode ${candidate.number}`}`;
+          const nextLabel = config?.hideNextTitle === "checked"
+            ? `Episode ${candidate.number}`
+            : (candidate.title || `Episode ${candidate.number}`);
+          description += `\n▶ Next canon: ${nextLabel}`;
           break;
         }
       }

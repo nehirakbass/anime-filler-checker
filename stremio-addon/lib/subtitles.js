@@ -30,7 +30,7 @@ const SHORT_LABELS = {
  * @returns {string} SRT formatted subtitle content
  */
 function generateSubtitle(episode, options = {}) {
-  const { startSec = 2, durationSec = 8, nextCanon = null } = options;
+  const { startSec = 2, durationSec = 8, nextCanon = null, hideNextTitle = false } = options;
 
   const type = episode?.type || "unknown";
   const label = LABELS[type] || LABELS.unknown;
@@ -46,8 +46,11 @@ function generateSubtitle(episode, options = {}) {
   }
 
   if (nextCanon && (type === "filler" || type === "mixed")) {
+    const nextLabel = hideNextTitle
+      ? `${nextCanon.number}`
+      : `${nextCanon.number} — ${nextCanon.title || ""}`;
     lines.push(
-      `Next canon episode: ${nextCanon.number} — ${nextCanon.title || ""}`
+      `Next canon episode: ${nextLabel}`
     );
   }
 

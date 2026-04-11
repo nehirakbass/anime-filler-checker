@@ -8,10 +8,22 @@
  */
 
 const { getRouter } = require("stremio-addon-sdk");
+const landingTemplate = require("stremio-addon-sdk/src/landingTemplate");
 const builder = require("../../../api/stremio/lib/addon");
 
 const addonInterface = builder.getInterface();
 const router = getRouter(addonInterface);
+const landingHTML = landingTemplate(addonInterface.manifest).replace(
+  "</head>",
+  `<style>
+    input[type="checkbox"] { transform: scale(1.6); margin-right: 0.8vh; }
+    .label-to-right { font-size: 1.7vh; }
+    .gives, .gives + ul { display: none; }
+  </style></head>`
+).replaceAll(
+  "window.location.host",
+  "window.location.host + window.location.pathname.replace(/\\/configure$/, '')"
+);
 
 export default function handler(req, res) {
   // Next.js catch-all gives us the path segments via req.query.path
@@ -25,6 +37,13 @@ export default function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.statusCode = 200;
     res.end();
+    return;
+  }
+
+  // Serve landing/configure page
+  if (req.url === "/configure") {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.end(landingHTML);
     return;
   }
 
