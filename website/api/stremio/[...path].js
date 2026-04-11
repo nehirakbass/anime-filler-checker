@@ -24,7 +24,6 @@ const landingHTML = landingTemplate(addonInterface.manifest).replace(
   "window.location.host",
   "window.location.host + window.location.pathname.replace(/\\/configure$/, '')"
 );
-);
 
 module.exports = (req, res) => {
   // Strip the /stremio prefix so the SDK router sees /manifest.json, /meta/..., etc.
