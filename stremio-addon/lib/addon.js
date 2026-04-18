@@ -5,8 +5,6 @@
 const { addonBuilder } = require("stremio-addon-sdk");
 const {
   fetchFillerData,
-  fetchMALData,
-  getFillerStats,
 } = require("./fillerData");
 const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
 
@@ -17,14 +15,14 @@ const fetch = require("node-fetch");
  * ═══════════════════════════════════════════════════ */
 const manifest = {
   id: "community.animefiller",
-  version: "1.1.0",
+  version: "1.1.1",
   name: "Anime Filler Checker",
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
     "Shows filler status in the stream list so you know before you hit play. " +
     "Visit animefillerchecker.com for more info and gain access to browser extensions.",
   logo: "https://animefillerchecker.com/icon128.png",
-  resources: ["meta", "subtitles", "stream"],
+  resources: ["subtitles", "stream"],
   types: ["series"],
   catalogs: [],
   idPrefixes: ["tt"],
@@ -152,72 +150,6 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
 
   return mapping.get(`${season}:${episode}`) || episode;
 }
-
-/* ═══════════════════════════════════════════════════
- *  META HANDLER
- * ═══════════════════════════════════════════════════ */
-builder.defineMetaHandler(async ({ type, id }) => {
-  if (type !== "series") return { meta: null };
-
-  try {
-    const animeName = await resolveAnimeName(id);
-    if (!animeName) return { meta: null };
-
-    const fillerData = await fetchFillerData(animeName);
-    if (!fillerData || fillerData.totalEpisodes === 0) return { meta: null };
-
-    const stats = getFillerStats(fillerData.episodes);
-    const mal = await fetchMALData(fillerData.showTitle || animeName);
-
-    const videos = [];
-    const episodeNumbers = Object.keys(fillerData.episodes)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    for (const epNum of episodeNumbers) {
-      const ep = fillerData.episodes[epNum];
-      const emoji = TYPE_EMOJI[ep.type] || "❓";
-      const label = SHORT_LABELS[ep.type] || "UNKNOWN";
-
-      videos.push({
-        id: `${id}:1:${epNum}`,
-        title: `${emoji} ${ep.title || `Episode ${epNum}`}`,
-        season: 1,
-        episode: epNum,
-        overview: `${emoji} ${label} — ${ep.title || `Episode ${epNum}`}`,
-        released: new Date(0).toISOString(),
-      });
-    }
-
-    const descLines = [
-      `📊 Filler Stats: ${stats.fillerPercent}% filler (${stats.filler}/${stats.total} episodes)`,
-      `✅ Canon: ${stats.canon} | ⛔ Filler: ${stats.filler} | ⚠️ Mixed: ${stats.mixed} | 🔵 Anime Canon: ${stats.anime_canon}`,
-    ];
-
-    if (mal) {
-      descLines.push(
-        `⭐ MAL Score: ${mal.score || "N/A"} | Status: ${mal.status || "Unknown"}`
-      );
-    }
-
-    const meta = {
-      id,
-      type: "series",
-      name: fillerData.showTitle,
-      description: descLines.join("\n"),
-      videos,
-    };
-
-    if (mal?.image) meta.poster = mal.image;
-    if (mal?.genres) meta.genres = mal.genres;
-    if (mal?.mal_url) meta.website = mal.mal_url;
-
-    return { meta };
-  } catch (err) {
-    console.error(`[META] Error for ${id}:`, err.message);
-    return { meta: null };
-  }
-});
 
 /* ═══════════════════════════════════════════════════
  *  SUBTITLES HANDLER
