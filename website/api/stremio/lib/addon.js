@@ -16,7 +16,7 @@ const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
  * ═══════════════════════════════════════════════════ */
 const manifest = {
   id: "community.animefiller",
-  version: "1.1.1",
+  version: "1.2.0",
   name: "Anime Filler Checker",
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
@@ -26,7 +26,7 @@ const manifest = {
   resources: ["subtitles", "stream"],
   types: ["series"],
   catalogs: [],
-  idPrefixes: ["tt"],
+  idPrefixes: ["tt", "kitsu:"],
   config: [
     { key: "showCanon", type: "checkbox", title: "✅ CANON — Manga faithful, safe to watch", default: "checked" },
     { key: "showFiller", type: "checkbox", title: "⛔ FILLER — Not from the manga, safe to skip", default: "checked" },
@@ -75,7 +75,33 @@ const TYPE_EMOJI = {
   unknown: "❓",
 };
 
+// Cache for Kitsu anime names
+const kitsuNameCache = new Map();
+
+async function resolveAnimeNameFromKitsu(kitsuId) {
+  const cached = kitsuNameCache.get(kitsuId);
+  if (cached) return cached;
+  try {
+    const res = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}`);
+    if (res.ok) {
+      const json = await res.json();
+      const name =
+        json.data?.attributes?.canonicalTitle ||
+        json.data?.attributes?.titles?.en_jp ||
+        null;
+      if (name) kitsuNameCache.set(kitsuId, name);
+      return name;
+    }
+  } catch {}
+  return null;
+}
+
 async function resolveAnimeName(id) {
+  // Kitsu ID: "kitsu:12345"
+  if (id.startsWith("kitsu:")) {
+    return resolveAnimeNameFromKitsu(id.slice("kitsu:".length));
+  }
+  // Resolve IMDB ID via Cinemeta (Stremio's default catalog)
   try {
     const res = await fetch(
       `https://v3-cinemeta.strem.io/meta/series/${encodeURIComponent(id)}.json`
@@ -106,8 +132,13 @@ function parseEpisodeFromVideoId(videoId) {
 /**
  * Extract the series base ID from a video ID.
  * "tt0388629:3:5" -> "tt0388629"
+ * "kitsu:12345:1" -> "kitsu:12345"
  */
 function getSeriesId(videoId) {
+  if (videoId.startsWith("kitsu:")) {
+    const parts = videoId.split(":");
+    return `${parts[0]}:${parts[1]}`;
+  }
   return videoId.split(":")[0];
 }
 
@@ -119,6 +150,9 @@ const absoluteEpCache = new Map();
  * Cinemeta returns all videos sorted by season/episode; we count the position.
  */
 async function resolveAbsoluteEpisode(seriesId, season, episode) {
+  // Kitsu uses absolute episode numbers directly
+  if (seriesId.startsWith("kitsu:")) return episode;
+
   const cacheKey = seriesId;
   let mapping = absoluteEpCache.get(cacheKey);
 

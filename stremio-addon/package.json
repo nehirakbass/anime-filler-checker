@@ -1,6 +1,6 @@
 {
   "name": "anime-filler-checker-stremio",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Stremio addon that marks anime episodes as Canon, Filler, Mixed, or Anime Canon using AnimeFillerList data",
   "main": "index.js",
   "scripts": {
