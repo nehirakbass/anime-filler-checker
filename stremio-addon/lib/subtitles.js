@@ -30,11 +30,12 @@ const SHORT_LABELS = {
  * @returns {string} SRT formatted subtitle content
  */
 function generateSubtitle(episode, options = {}) {
-  const { startSec = 2, durationSec = 8, nextCanon = null, hideNextTitle = false } = options;
+  const { startSec = 2, durationSec = 8, nextCanon = null, hideNextTitle = false, shortDescription = false } = options;
 
   const type = episode?.type || "unknown";
-  const label = LABELS[type] || LABELS.unknown;
-  const shortLabel = SHORT_LABELS[type] || "UNKNOWN";
+  const label = shortDescription
+    ? (SHORT_LABELS[type] || "UNKNOWN")
+    : (LABELS[type] || LABELS.unknown);
 
   const startTime = formatSrtTime(startSec);
   const endTime = formatSrtTime(startSec + durationSec);

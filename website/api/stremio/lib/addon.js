@@ -16,7 +16,7 @@ const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
  * ═══════════════════════════════════════════════════ */
 const manifest = {
   id: "community.animefiller",
-  version: "1.2.0",
+  version: "1.2.1",
   name: "Anime Filler Checker",
   description:
     "Detects filler, canon, mixed, and anime-canon episodes for anime series. " +
@@ -33,6 +33,7 @@ const manifest = {
     { key: "showMixed", type: "checkbox", title: "⚠️ MIXED — Contains both canon and filler", default: "checked" },
     { key: "showAnimeCanon", type: "checkbox", title: "🔵 ANIME CANON — Anime-original but plot-relevant", default: "checked" },
     { key: "hideNextTitle", type: "checkbox", title: "🔒 Hide spoilers — Only show episode number in next canon hint" },
+    { key: "shortDescription", type: "checkbox", title: "📝 Short Description — Show only CANON / FILLER status, no extra text" },
   ],
   behaviorHints: {
     configurable: true,
@@ -63,7 +64,7 @@ const CONFIG_TYPE_MAP = {
 function shouldShowVerdict(config, type) {
   const key = CONFIG_TYPE_MAP[type];
   if (!key) return true;
-  if (!config || Object.keys(config).length === 0) return true;
+  if (!config || !(key in config)) return true;
   return !!config[key];
 }
 
@@ -224,7 +225,7 @@ builder.defineSubtitlesHandler(async ({ type, id, config }) => {
       }
     }
 
-    const srtContent = generateSubtitle(episode, { nextCanon, hideNextTitle: !!config?.hideNextTitle });
+    const srtContent = generateSubtitle(episode, { nextCanon, hideNextTitle: !!config?.hideNextTitle, shortDescription: !!config?.shortDescription });
     const label = SHORT_LABELS[episode.type] || "UNKNOWN";
     const emoji = TYPE_EMOJI[episode.type] || "❓";
     const srtBase64 = Buffer.from(srtContent, "utf-8").toString("base64");
@@ -282,7 +283,7 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
     const emoji = TYPE_EMOJI[episode.type] || "❓";
     const shortLabel = SHORT_LABELS[episode.type] || "UNKNOWN";
 
-    let description = label;
+    let description = config?.shortDescription ? `${emoji} ${shortLabel}` : label;
 
     if (episode.type === "filler" || episode.type === "mixed") {
       for (let n = epNum + 1; n <= epNum + 50; n++) {
