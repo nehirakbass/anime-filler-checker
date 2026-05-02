@@ -52,6 +52,11 @@ async function fetchFillerData(animeName) {
 
   // 2. KV (persistent across cold starts)
   const kvCached = await kvGet(kvKey);
+  if (kvCached === "__null__") {
+    // Negative cache hit — not found on AFL
+    fillerCache.set(slug, { data: null, ts: Date.now() });
+    return null;
+  }
   if (kvCached) {
     logCacheEvent("hit", `kv:${slug}`);
     fillerCache.set(slug, { data: kvCached, ts: Date.now() }); // warm in-memory
@@ -83,6 +88,10 @@ async function fetchFillerData(animeName) {
   if (data && data.totalEpisodes > 0) {
     fillerCache.set(slug, { data, ts: Date.now() });
     await kvSet(kvKey, data, FILLER_KV_TTL);
+  } else {
+    // Negative cache — not on AFL, don't check again for 6h
+    fillerCache.set(slug, { data: null, ts: Date.now() });
+    await kvSet(kvKey, "__null__", 60 * 60 * 6);
   }
   return data;
 }

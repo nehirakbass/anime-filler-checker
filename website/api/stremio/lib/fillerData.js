@@ -115,6 +115,11 @@ async function fetchFillerData(animeName) {
   // 0.5. KV persistent cache (survives cold starts)
   const kvKey = `afc:filler:${slug}`;
   const kvCached = await kvGet(kvKey);
+  if (kvCached === "__null__") {
+    // Negative cache hit — not an AFL anime
+    fillerCache.set(slug, { data: null, ts: Date.now() });
+    return null;
+  }
   if (kvCached) {
     logCacheEvent("hit", `kv:${slug}`);
     fillerCache.set(slug, { data: kvCached, ts: Date.now() });
@@ -138,7 +143,9 @@ async function fetchFillerData(animeName) {
   const showSlug = showList.__nameLookup?.[normalizeName(animeName)]
     || lookupBundle(showList, animeName);
   if (!showSlug) {
-    // Not an AFL anime → reject immediately (no external call)
+    // Not an AFL anime → negative cache for 6h so we never check again
+    fillerCache.set(slug, { data: null, ts: Date.now() });
+    await kvSet(kvKey, "__null__", 60 * 60 * 6);
     return null;
   }
 
