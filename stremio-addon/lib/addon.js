@@ -7,6 +7,7 @@ const {
   fetchFillerData,
 } = require("./fillerData");
 const { generateSubtitle, SHORT_LABELS } = require("./subtitles");
+const { kvGet, kvSet } = require("./kvCache");
 
 const fetch = require("node-fetch");
 
@@ -85,9 +86,37 @@ const kitsuNameCache = new Map();
 // Cache for Cinemeta series name lookups (IMDB IDs)
 const cinemetaNameCache = new Map();
 
+/* ═══════════════════════════════════════════════════
+ *  CACHE STATS — visible in Vercel Function Logs
+ * ═══════════════════════════════════════════════════ */
+const cacheStats = { hits: 0, misses: 0 };
+
+function cacheHit(label) {
+  cacheStats.hits++;
+  if (process.env.AFC_CACHE_DEBUG === "1")
+    console.log(`[CACHE HIT]  ${label} (hits=${cacheStats.hits} misses=${cacheStats.misses})`);
+}
+
+function cacheMiss(label) {
+  cacheStats.misses++;
+  console.log(`[CACHE MISS] ${label} (hits=${cacheStats.hits} misses=${cacheStats.misses})`);
+}
+
 async function resolveAnimeNameFromKitsu(kitsuId) {
   const cached = kitsuNameCache.get(kitsuId);
-  if (cached && Date.now() - cached.ts < KITSU_NAME_CACHE_TTL) return cached.name;
+  if (cached && Date.now() - cached.ts < KITSU_NAME_CACHE_TTL) {
+    cacheHit(`kitsu:${kitsuId}`);
+    return cached.name;
+  }
+  // KV layer
+  const kvKey = `afc:name:kitsu:${kitsuId}`;
+  const kvName = await kvGet(kvKey);
+  if (kvName) {
+    cacheHit(`kv:kitsu:${kitsuId}`);
+    kitsuNameCache.set(kitsuId, { name: kvName, ts: Date.now() });
+    return kvName;
+  }
+  cacheMiss(`kitsu:${kitsuId}`);
   try {
     const res = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}`);
     if (res.ok) {
@@ -96,7 +125,10 @@ async function resolveAnimeNameFromKitsu(kitsuId) {
         json.data?.attributes?.canonicalTitle ||
         json.data?.attributes?.titles?.en_jp ||
         null;
-      if (name) kitsuNameCache.set(kitsuId, { name, ts: Date.now() });
+      if (name) {
+        kitsuNameCache.set(kitsuId, { name, ts: Date.now() });
+        await kvSet(kvKey, name, 60 * 60 * 24 * 7);
+      }
       return name;
     }
   } catch {}
@@ -110,7 +142,20 @@ async function resolveAnimeName(id) {
   }
   // Resolve IMDB ID via Cinemeta (Stremio's default catalog)
   const cachedName = cinemetaNameCache.get(id);
-  if (cachedName && Date.now() - cachedName.ts < CINEMETA_NAME_CACHE_TTL) return cachedName.name;
+  if (cachedName && Date.now() - cachedName.ts < CINEMETA_NAME_CACHE_TTL) {
+    cacheHit(`cinemeta:${id}`);
+    return cachedName.name;
+  }
+  // KV layer
+  const safeId = id.replace(/[^a-z0-9]/gi, "_");
+  const kvKey = `afc:name:cinemeta:${safeId}`;
+  const kvName = await kvGet(kvKey);
+  if (kvName) {
+    cacheHit(`kv:cinemeta:${id}`);
+    cinemetaNameCache.set(id, { name: kvName, ts: Date.now() });
+    return kvName;
+  }
+  cacheMiss(`cinemeta:${id}`);
   try {
     const res = await fetch(
       `https://v3-cinemeta.strem.io/meta/series/${encodeURIComponent(id)}.json`
@@ -118,7 +163,10 @@ async function resolveAnimeName(id) {
     if (res.ok) {
       const json = await res.json();
       const name = json.meta?.name || null;
-      if (name) cinemetaNameCache.set(id, { name, ts: Date.now() });
+      if (name) {
+        cinemetaNameCache.set(id, { name, ts: Date.now() });
+        await kvSet(kvKey, name, 60 * 60 * 24 * 7);
+      }
       return name;
     }
   } catch {}
@@ -172,6 +220,17 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
       : null;
 
   if (!mapping) {
+    // KV layer — stored as plain object, restore to Map
+    const safeId = seriesId.replace(/[^a-z0-9]/gi, "_");
+    const kvKey = `afc:abep:${safeId}`;
+    const kvObj = await kvGet(kvKey);
+    if (kvObj && typeof kvObj === "object") {
+      mapping = new Map(Object.entries(kvObj));
+      absoluteEpCache.set(cacheKey, { mapping, ts: Date.now() });
+    }
+  }
+
+  if (!mapping) {
     try {
       const res = await fetch(
         `https://v3-cinemeta.strem.io/meta/series/${encodeURIComponent(seriesId)}.json`
@@ -192,6 +251,9 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
       });
 
       absoluteEpCache.set(cacheKey, { mapping, ts: Date.now() });
+      // Persist to KV as plain object
+      const safeId = seriesId.replace(/[^a-z0-9]/gi, "_");
+      await kvSet(`afc:abep:${safeId}`, Object.fromEntries(mapping), 60 * 60 * 24 * 7);
     } catch {
       return episode; // fallback
     }

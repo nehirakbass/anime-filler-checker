@@ -6,13 +6,23 @@
  */
 
 const fetch = require("node-fetch");
+const { kvGet, kvSet, kvAvailable } = require("./kvCache");
 
-const CACHE_TTL = 1000 * 60 * 60 * 24 * 14; // 14 days
-const MAL_CACHE_TTL = 1000 * 60 * 60 * 24 * 5; // 5 days
+const CACHE_TTL     = 1000 * 60 * 60 * 24 * 14; // 14 days (ms, for in-memory)
+const MAL_CACHE_TTL = 1000 * 60 * 60 * 24 * 5;  // 5 days
+const FILLER_KV_TTL = 60 * 60 * 24 * 14;         // 14 days (seconds, for KV)
+const MAL_KV_TTL    = 60 * 60 * 24 * 5;          // 5 days
 
 // In-memory caches
 const fillerCache = new Map();
 const malCache = new Map();
+
+// Cache stats (shared bucket with addon.js — just log here)
+function logCacheEvent(type, label) {
+  if (type === "miss") console.log(`[CACHE MISS] filler:${label}`);
+  else if (process.env.AFC_CACHE_DEBUG === "1")
+    console.log(`[CACHE HIT]  filler:${label}`);
+}
 
 /* ═══════════════════════════════════════════════════
  *  SLUG BUILDER
@@ -31,14 +41,27 @@ function buildSlug(animeName) {
  * ═══════════════════════════════════════════════════ */
 async function fetchFillerData(animeName) {
   const slug = buildSlug(animeName);
+  const kvKey = `afc:filler:${slug}`;
 
-  // Check cache
-  const cached = fillerCache.get(slug);
-  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
+  // 1. In-memory cache
+  const memCached = fillerCache.get(slug);
+  if (memCached && Date.now() - memCached.ts < CACHE_TTL) {
+    logCacheEvent("hit", slug);
+    return memCached.data;
+  }
 
+  // 2. KV (persistent across cold starts)
+  const kvCached = await kvGet(kvKey);
+  if (kvCached) {
+    logCacheEvent("hit", `kv:${slug}`);
+    fillerCache.set(slug, { data: kvCached, ts: Date.now() }); // warm in-memory
+    return kvCached;
+  }
+
+  logCacheEvent("miss", slug);
   let data = null;
 
-  // Try direct slug first
+  // 3. Fetch from AnimeFillerList
   try {
     const url = `https://www.animefillerlist.com/shows/${slug}`;
     const res = await fetch(url);
@@ -47,6 +70,7 @@ async function fetchFillerData(animeName) {
       data = parseWithRegex(html, url);
       if (data && data.totalEpisodes > 0) {
         fillerCache.set(slug, { data, ts: Date.now() });
+        await kvSet(kvKey, data, FILLER_KV_TTL);
         return data;
       }
     }
@@ -58,6 +82,7 @@ async function fetchFillerData(animeName) {
   data = await searchAndFetch(animeName);
   if (data && data.totalEpisodes > 0) {
     fillerCache.set(slug, { data, ts: Date.now() });
+    await kvSet(kvKey, data, FILLER_KV_TTL);
   }
   return data;
 }
@@ -208,10 +233,20 @@ async function fetchMALData(animeName) {
     .replace(/\s*(Filler List|Episode List|Filler Guide)\s*$/i, "")
     .trim();
   const cacheKey = cleanName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const kvKey = `afc:mal:${cacheKey}`;
 
-  const cached = malCache.get(cacheKey);
-  if (cached && Date.now() - cached.ts < MAL_CACHE_TTL) return cached.data;
+  // 1. In-memory
+  const memCached = malCache.get(cacheKey);
+  if (memCached && Date.now() - memCached.ts < MAL_CACHE_TTL) return memCached.data;
 
+  // 2. KV
+  const kvCached = await kvGet(kvKey);
+  if (kvCached) {
+    malCache.set(cacheKey, { data: kvCached, ts: Date.now() });
+    return kvCached;
+  }
+
+  // 3. Jikan API
   try {
     const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(cleanName)}&type=tv&limit=1`;
     const res = await fetch(url);
@@ -234,6 +269,7 @@ async function fetchMALData(animeName) {
     };
 
     malCache.set(cacheKey, { data: result, ts: Date.now() });
+    await kvSet(kvKey, result, MAL_KV_TTL);
     return result;
   } catch {
     return null;
