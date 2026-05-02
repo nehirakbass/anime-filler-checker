@@ -11,6 +11,12 @@ const { kvGet, kvSet } = require("./kvCache");
 
 const fetch = require("node-fetch");
 
+// IMDB ID → AFL slug map (built by scrape-all-shows.js, updated weekly)
+let imdbIds = {};
+try {
+  imdbIds = require("./imdbIds.json");
+} catch {}
+
 /* ═══════════════════════════════════════════════════
  *  ADDON MANIFEST
  * ═══════════════════════════════════════════════════ */
@@ -144,6 +150,17 @@ async function resolveAnimeName(id) {
   // Kitsu ID: "kitsu:12345"
   if (id.startsWith("kitsu:")) {
     return resolveAnimeNameFromKitsu(id.slice("kitsu:".length));
+  }
+  // IMDB ID: check local imdbIds map first — zero API calls
+  if (id.startsWith("tt")) {
+    const slug = imdbIds[id];
+    if (slug) {
+      cacheHit(`imdbIds:${id}`);
+      return slug;
+    }
+    // Not in our anime list → not an anime, reject immediately
+    cacheMiss(`imdbIds:${id}`);
+    return null;
   }
   // Resolve IMDB ID via Cinemeta (Stremio's default catalog)
   const cachedName = cinemetaNameCache.get(id);

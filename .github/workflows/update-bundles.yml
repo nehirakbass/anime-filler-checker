@@ -30,7 +30,8 @@ jobs:
           branch: chore/update-stremio-bundles
           delete-branch: true
           title: "chore: update stremio filler bundles"
-          body: "Automated weekly update of `completedAnime.json` and `showList.json`."
+          body: "Automated weekly update of `completedAnime.json`, `showList.json`, and `imdbIds.json`."
           add-paths: |
             website/api/stremio/lib/completedAnime.json
             website/api/stremio/lib/showList.json
+            website/api/stremio/lib/imdbIds.json

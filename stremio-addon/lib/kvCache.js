@@ -13,8 +13,9 @@ let redis = null;
 
 function getRedis() {
   if (redis) return redis;
-  const url   = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Support both Upstash direct env vars and Vercel KV integration env vars
+  const url   = process.env.UPSTASH_REDIS_REST_URL  || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (!url || !token) return null;
   try {
     const { Redis } = require("@upstash/redis");
@@ -61,7 +62,11 @@ async function kvSet(key, value, ttlSeconds) {
  * Check whether KV is configured (useful for logging).
  */
 function kvAvailable() {
-  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return !!((
+    process.env.UPSTASH_REDIS_REST_URL  || process.env.KV_REST_API_URL
+  ) && (
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  ));
 }
 
 module.exports = { kvGet, kvSet, kvAvailable };

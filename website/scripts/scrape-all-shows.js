@@ -21,6 +21,7 @@ const SHOWS_URL = "https://www.animefillerlist.com/shows";
 const LIB_DIR = path.join(__dirname, "../api/stremio/lib");
 const COMPLETED_PATH = path.join(LIB_DIR, "completedAnime.json");
 const SHOWLIST_PATH = path.join(LIB_DIR, "showList.json");
+const IMDBIDS_PATH = path.join(LIB_DIR, "imdbIds.json");
 const AFL_DELAY = 600; // ms between AFL requests
 const JIKAN_DELAY = 350; // ms between Jikan requests (~3/sec)
 
@@ -78,22 +79,50 @@ function extractTitle(html) {
   return m ? m[1].replace(/<[^>]+>/g, "").trim() : null;
 }
 
-/* ── Jikan airing status ──────────────────────────── */
+/* ── Jikan airing status + IMDB ID ───────────────── */
 
-async function checkFinished(animeName) {
+/**
+ * Returns { isFinished: bool|null, imdbId: string|null }
+ */
+async function checkJikanData(animeName) {
   const cleanName = animeName
     .replace(/\s*(Filler List|Episode List|Filler Guide)\s*$/i, "")
     .trim();
   try {
     const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(cleanName)}&limit=1`;
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return null;
+    if (!res.ok) return { isFinished: null, imdbId: null };
     const json = await res.json();
     const anime = json.data?.[0];
-    if (!anime) return null;
-    return anime.status === "Finished Airing";
+    if (!anime) return { isFinished: null, imdbId: null };
+
+    const isFinished = anime.status === "Finished Airing" ? true
+      : anime.status === "Currently Airing" ? false
+      : null;
+
+    // Fetch external links to get IMDB ID
+    let imdbId = null;
+    try {
+      await delay(JIKAN_DELAY);
+      const extRes = await fetch(
+        `https://api.jikan.moe/v4/anime/${anime.mal_id}/external`,
+        { signal: AbortSignal.timeout(6000) }
+      );
+      if (extRes.ok) {
+        const extJson = await extRes.json();
+        const imdbEntry = (extJson.data || []).find(
+          (e) => e.name === "Internet Movie Database"
+        );
+        if (imdbEntry?.url) {
+          const m = imdbEntry.url.match(/\/(tt\d+)/);
+          if (m) imdbId = m[1];
+        }
+      }
+    } catch {}
+
+    return { isFinished, imdbId };
   } catch {
-    return null; // unknown → treat as ongoing
+    return { isFinished: null, imdbId: null };
   }
 }
 
@@ -159,9 +188,10 @@ async function main() {
 
   console.log(`\nScraping done: ${scraped} scraped, ${failed} failed, ${empty} empty.`);
 
-  // 3. Check airing status via Jikan for scraped shows
+  // 3. Check airing status via Jikan for scraped shows + collect IMDB IDs
   console.log(`\nChecking airing status via Jikan for ${scrapedShows.length} shows...`);
   const completedBundle = {};
+  const imdbIds = {}; // { "tt1234567": "one-piece" }
   let finished = 0, ongoing = 0, unknown = 0;
 
   for (let i = 0; i < scrapedShows.length; i++) {
@@ -170,7 +200,11 @@ async function main() {
       `[${i + 1}/${scrapedShows.length}] ${show.slug} ... `
     );
 
-    const isFinished = await checkFinished(show.title);
+    const { isFinished, imdbId } = await checkJikanData(show.title);
+
+    if (imdbId) {
+      imdbIds[imdbId] = show.slug;
+    }
 
     if (isFinished === true) {
       completedBundle[show.slug] = {
@@ -179,10 +213,10 @@ async function main() {
         fillerCount: show.episodes.filter((e) => e.type === "filler").length,
         episodes: show.episodes,
       };
-      console.log("FINISHED ✓");
+      console.log(`FINISHED ✓${imdbId ? " " + imdbId : ""}`);
       finished++;
     } else if (isFinished === false) {
-      console.log("ONGOING →");
+      console.log(`ONGOING →${imdbId ? " " + imdbId : ""}`);
       ongoing++;
     } else {
       // null = Jikan couldn't resolve → include as completed to be safe
@@ -192,7 +226,7 @@ async function main() {
         fillerCount: show.episodes.filter((e) => e.type === "filler").length,
         episodes: show.episodes,
       };
-      console.log("UNKNOWN (included) ?");
+      console.log(`UNKNOWN (included) ?${imdbId ? " " + imdbId : ""}`);
       unknown++;
     }
     await delay(JIKAN_DELAY);
@@ -238,15 +272,18 @@ async function main() {
   // 6. Write files
   fs.writeFileSync(COMPLETED_PATH, JSON.stringify(completedBundle));
   fs.writeFileSync(SHOWLIST_PATH, JSON.stringify(showList));
+  fs.writeFileSync(IMDBIDS_PATH, JSON.stringify(imdbIds));
 
   const completedMB = (fs.statSync(COMPLETED_PATH).size / 1024 / 1024).toFixed(2);
   const showListKB = (fs.statSync(SHOWLIST_PATH).size / 1024).toFixed(1);
+  const imdbIdsKB = (fs.statSync(IMDBIDS_PATH).size / 1024).toFixed(1);
 
   console.log(`\n${"═".repeat(50)}`);
   console.log(`completedAnime.json : ${finished + unknown} shows (${completedMB} MB)`);
   console.log(`  → Finished: ${finished}, Unknown (included): ${unknown}`);
   console.log(`showList.json       : ${allShows.length} shows (${showListKB} KB)`);
   console.log(`  → Ongoing: ${ongoing}`);
+  console.log(`imdbIds.json        : ${Object.keys(imdbIds).length} IMDB IDs (${imdbIdsKB} KB)`);
   console.log(`${"═".repeat(50)}`);
 }
 
