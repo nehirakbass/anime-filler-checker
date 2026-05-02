@@ -39,6 +39,19 @@ module.exports = (req, res) => {
     return;
   }
 
+  // CDN caching
+  const cleanUrl2 = strippedUrl.split("?")[0];
+  if (cleanUrl2.includes("/manifest.json")) {
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
+  } else if (/\/(stream|subtitles)\//.test(cleanUrl2)) {
+    const { MAINTENANCE_MODE } = require("./lib/addon");
+    if (MAINTENANCE_MODE) {
+      res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=86400");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
+    }
+  }
+
   // Serve landing/configure page
   const cleanUrl = strippedUrl.split("?")[0].replace(/\/$/, "");
   if (cleanUrl === "/" || cleanUrl === "" || cleanUrl === "/configure") {

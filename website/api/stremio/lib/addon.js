@@ -55,6 +55,11 @@ const builder = new addonBuilder(manifest);
  *  HELPERS
  * ═══════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════
+ *  MAINTENANCE MODE — set to false to re-enable
+ * ═══════════════════════════════════════════════════ */
+const MAINTENANCE_MODE = true;
+
 const CONFIG_TYPE_MAP = {
   canon: "showCanon",
   filler: "showFiller",
@@ -267,6 +272,7 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
  *  SUBTITLES HANDLER
  * ═══════════════════════════════════════════════════ */
 builder.defineSubtitlesHandler(async ({ type, id, config }) => {
+  if (MAINTENANCE_MODE) return { subtitles: [] };
   if (type !== "series") return { subtitles: [] };
 
   try {
@@ -336,6 +342,13 @@ const STREAM_LABELS = {
 };
 
 builder.defineStreamHandler(async ({ type, id, config }) => {
+  if (MAINTENANCE_MODE) return {
+    streams: [{
+      name: "🚧 MAINTENANCE",
+      description: "Anime Filler Checker is temporarily under maintenance.\nPlease check back soon — animefillerchecker.com",
+      externalUrl: "https://animefillerchecker.com",
+    }],
+  };
   if (type !== "series") return { streams: [] };
 
   try {
@@ -392,3 +405,4 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
 });
 
 module.exports = builder;
+module.exports.MAINTENANCE_MODE = MAINTENANCE_MODE;

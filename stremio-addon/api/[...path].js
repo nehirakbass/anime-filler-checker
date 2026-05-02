@@ -28,12 +28,17 @@ module.exports = (req, res) => {
     // Manifest rarely changes; cache for 1 hour at the edge
     res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
   } else if (/\/(stream|subtitles)\//.test(reqPath)) {
-    // Episode data: serve fresh for 1 hour, allow stale up to 24 hours while
-    // revalidating in the background (stale-while-revalidate).
-    res.setHeader(
-      "Cache-Control",
-      "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
-    );
+    // Maintenance: freeze all stream/subtitle responses at the edge for 24h
+    // so the function is not invoked again for the same episode.
+    const { MAINTENANCE_MODE } = require("../lib/addon");
+    if (MAINTENANCE_MODE) {
+      res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=86400");
+    } else {
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+      );
+    }
   }
 
   router(req, res, () => {
