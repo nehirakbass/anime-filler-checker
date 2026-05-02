@@ -40,6 +40,7 @@
     "anizm.tv",
     "animekai.to",
     "animekai.pw",
+    "openani.me",
   ];
 
   /** Check if current site is in the user's streaming sites whitelist */
@@ -144,12 +145,12 @@
       /\/([a-z0-9][a-z0-9-]+?)-(\d+)-bol[uü]m/,
       // slug-episode-NUM
       /\/([a-z0-9][a-z0-9-]+?)-(?:episode|ep)-?(\d+)/,
+      // /anime/slug/SEASON/EPISODE (e.g. openani.me/anime/bleach/1/4)
+      /\/(?:watch|anime|izle|video)\/([a-z0-9][a-z0-9-]+?)\/\d+\/(\d+)/,
       // /watch/slug/episode-NUM  or /watch/slug/NUM
       /\/(?:watch|anime|izle|video)\/([a-z0-9][a-z0-9-]+?)\/(?:episode-?|ep-?)?(\d+)/,
       // /slug/season-N/episode-NUM
       /\/([a-z0-9][a-z0-9-]+?)\/(?:season-?\d+\/)?(?:episode|ep)-?(\d+)/,
-      // Catch: slug followed by number ONLY at true end of path (no more word segments after)
-      /\/([a-z0-9][a-z0-9-]*[a-z])-(\d{1,4})(?:\/|$)/,
     ];
 
     for (const pat of patterns) {
@@ -157,8 +158,9 @@
       if (m) {
         const slug = m[1].replace(/[-_]+$/, "");
         const ep = parseInt(m[2], 10);
-        const name = KNOWN_ANIME[slug] || slugToName(slug);
-        if (isValidAnimeName(name) && isValidEpisode(ep)) {
+        // Only match known anime — don't guess unknown slugs via slugToName
+        const name = KNOWN_ANIME[slug];
+        if (name && isValidEpisode(ep)) {
           return { animeName: name, episode: ep };
         }
       }
@@ -209,26 +211,92 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
-   *  META TAG PARSER — fallback for sites with good meta tags
+   *  JSON-LD PARSER — most reliable (schema.org TVEpisode / TVSeries)
+   * ═══════════════════════════════════════════════════════════════ */
+  function extractFromJsonLD() {
+    const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (const script of scripts) {
+      let data;
+      try { data = JSON.parse(script.textContent); } catch { continue; }
+
+      // Handle @graph arrays (e.g. Next.js sites)
+      const nodes = Array.isArray(data["@graph"]) ? data["@graph"] : [data];
+
+      let animeName = "";
+      let episode = null;
+
+      for (const node of nodes) {
+        const type = (node["@type"] || "").toString().toLowerCase();
+
+        if (type === "tvepisode") {
+          // Episode number
+          const epNum = node.episodeNumber ?? node["episode"]?.episodeNumber;
+          if (epNum != null) episode = parseInt(epNum, 10);
+
+          // Series name from partOfSeries or partOfSeason.partOfSeries
+          const series =
+            node.partOfSeries?.name ||
+            node.partOfSeason?.partOfSeries?.name ||
+            node.partOfSeason?.name ||
+            null;
+          if (series) animeName = series;
+        }
+
+        if ((type === "tvseries" || type === "series") && !animeName) {
+          if (node.name) animeName = node.name;
+        }
+      }
+
+      if (animeName && isValidAnimeName(animeName) && isValidEpisode(episode)) {
+        return { animeName: animeName.trim(), episode };
+      }
+    }
+    return null;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+   *  META TAG PARSER — only explicit video/episode meta tags
    * ═══════════════════════════════════════════════════════════════ */
   function extractFromMeta() {
-    const metas = [
-      document.querySelector('meta[property="og:title"]')?.content,
-      document.querySelector('meta[name="title"]')?.content,
-      document.querySelector('meta[property="og:description"]')?.content,
-    ];
-    for (const raw of metas) {
-      if (!raw) continue;
-      const cleaned = raw.replace(/[\|–—]/g, "-").replace(/\s+/g, " ").trim();
-      const m = cleaned.match(/(.+?)\s*[-:]?\s*(?:Episode|Ep\.?|E)(\d+)/i);
+    // Prefer explicit structured tags over parsing og:title
+    const series =
+      document.querySelector('meta[property="og:video:series"]')?.content ||
+      document.querySelector('meta[name="video:series"]')?.content ||
+      document.querySelector('meta[property="video:series"]')?.content ||
+      null;
+
+    const epRaw =
+      document.querySelector('meta[property="og:video:episode"]')?.content ||
+      document.querySelector('meta[name="video:episode"]')?.content ||
+      null;
+
+    if (series && epRaw) {
+      const ep = parseInt(epRaw, 10);
+      if (isValidAnimeName(series) && isValidEpisode(ep)) {
+        return { animeName: series.trim(), episode: ep };
+      }
+    }
+
+    // og:title only if it contains an explicit Episode/Ep/Bölüm keyword
+    const ogTitle =
+      document.querySelector('meta[property="og:title"]')?.content || "";
+    if (ogTitle) {
+      const m = ogTitle
+        .replace(/[\|–—]/g, "-")
+        .replace(/\s+/g, " ")
+        .match(/^(.+?)\s*[-:]\s*(?:Episode|Ep\.?|Bölüm|Bolum)\s*(\d+)/i);
       if (m) {
-        let name = m[1].replace(/[-:]\s*$/, "").replace(/\b(Watch|Online|Free|HD|Sub|Dub|Anime)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+        const name = m[1]
+          .replace(/\b(Watch|Online|Free|HD|Sub|Dub|Anime|İzle|Izle)\b/gi, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
         const ep = parseInt(m[2], 10);
         if (isValidAnimeName(name) && isValidEpisode(ep)) {
           return { animeName: name, episode: ep };
         }
       }
     }
+
     return null;
   }
 
@@ -343,6 +411,18 @@
     /* — AnimeKai — */
     "animekai.to":   animekaiExtract,
     "animekai.pw":   animekaiExtract,
+
+    /* — OpenAni.me — URL format: /anime/slug/season/episode */
+    "openani.me": () => {
+      const m = location.pathname.match(/\/anime\/([a-z0-9][a-z0-9-]+?)\/(\d+)\/(\d+)/i);
+      if (m) {
+        const slug = m[1].toLowerCase();
+        const ep   = parseInt(m[3], 10); // m[2]=season, m[3]=absolute episode
+        const name = KNOWN_ANIME[slug];
+        if (name && isValidEpisode(ep)) return { animeName: name, episode: ep };
+      }
+      return null;
+    },
   };
 
   /* ---------- Shared extractor functions ---------- */
@@ -726,12 +806,14 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
-   *  MAIN DETECT — tries DOM → URL → Title → Meta in order
+   *  MAIN DETECT — DOM → JSON-LD → Meta → Title → URL
    * ═══════════════════════════════════════════════════════════════ */
   function detect() {
     const host = location.hostname.replace(/^www\./, "");
 
-    // 1. Site-specific DOM extractors (most reliable for known sites)
+    // 1. Site-specific DOM extractors — handcrafted, always most accurate for
+    //    known sites (run before JSON-LD so season-relative episodeNumber in
+    //    JSON-LD can't override the correct absolute episode from the URL/DOM)
     for (const [key, fn] of Object.entries(siteExtractors)) {
       if (host.includes(key)) {
         const r = fn();
@@ -739,17 +821,21 @@
       }
     }
 
-    // 2. URL parser (reliable for intl/unknown sites)
-    const fromURL = extractFromURL();
-    if (fromURL?.animeName && fromURL?.episode) return fromURL;
+    // 2. JSON-LD structured data — reliable for unknown sites with schema.org markup
+    const fromJsonLD = extractFromJsonLD();
+    if (fromJsonLD?.animeName && fromJsonLD?.episode) return fromJsonLD;
 
-    // 3. Title tag
+    // 3. Explicit meta tags (og:video:series/episode) or og:title with episode keyword
+    const fromMeta = extractFromMeta();
+    if (fromMeta?.animeName && fromMeta?.episode) return fromMeta;
+
+    // 4. Title tag — only fires when explicit episode keyword present
     const fromTitle = extractFromTitle();
     if (fromTitle?.animeName && fromTitle?.episode) return fromTitle;
 
-    // 4. Meta tags (og:title, etc.)
-    const fromMeta = extractFromMeta();
-    if (fromMeta?.animeName && fromMeta?.episode) return fromMeta;
+    // 5. URL — last resort, only KNOWN_ANIME dictionary slugs (no guessing)
+    const fromURL = extractFromURL();
+    if (fromURL?.animeName && fromURL?.episode) return fromURL;
 
     return { animeName: "", episode: null };
   }

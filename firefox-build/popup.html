@@ -427,6 +427,23 @@
       line-height: 1.5;
     }
 
+    .next-canon-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(0,224,158,0.08);
+      font-size: 11px;
+      color: var(--canon);
+      font-weight: 600;
+    }
+    .next-canon-hint .nch-label {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
     .result-link {
       display: block;
       text-align: center;
@@ -580,6 +597,14 @@
     }
     .footer-action:hover { opacity: 1; color: var(--accent); }
     .footer-action .fa-icon { font-size: 11px; }
+    .report-site-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+    }
+    .report-site-btn:hover { opacity: 1; color: var(--filler) !important; }
 
     /* ─── Auto-skip select ────────────── */
     .skip-row {
@@ -1103,8 +1128,14 @@
     <span id="footerVersion">v2.3.0</span>
     <div class="footer-actions">
       <a class="footer-action" href="https://github.com/sponsors/nehirakbass" target="_blank" title="Support this project">
-        <span class="fa-icon">❤️</span> Sponsor
+        <span class="fa-icon">❤️</span> Support
       </a>
+      <a class="footer-action" href="https://addons.mozilla.org/en-US/firefox/addon/anime-filler-checker/" target="_blank" title="Rate us on Firefox Add-ons">
+        <span class="fa-icon">⭐</span> Rate Us
+      </a>
+      <button class="footer-action report-site-btn" id="reportSiteBtn" title="Doesn't work on this site? Report it!">
+        <span class="fa-icon">🚩</span> <span id="reportSiteText">Report Site</span>
+      </button>
     </div>
   </div>
 

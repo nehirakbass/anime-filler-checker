@@ -395,6 +395,18 @@ function renderResult(data) {
     `;
   }
 
+  let nextCanonHTML = "";
+  const next = data.nextCanonEp;
+  if (next && (type === "filler" || type === "mixed")) {
+    nextCanonHTML = `
+      <div class="next-canon-hint">
+        <span>▶</span>
+        <span class="nch-label">Next canon:</span>
+        <span>EP ${next.number}</span>
+      </div>
+    `;
+  }
+
   $("#results").innerHTML = `
     <div class="result-card">
       <div class="result-top">
@@ -408,6 +420,7 @@ function renderResult(data) {
       <div class="result-verdict">
         <span class="verdict-pill ${type}">${v.icon} ${v.label}</span>
         <div class="verdict-desc">${v.desc}</div>
+        ${nextCanonHTML}
       </div>
       <a class="result-link" href="${esc(data.url)}" target="_blank">
         View full list on AnimeFillerList ↗
@@ -566,4 +579,53 @@ document.getElementById("bugForm").addEventListener("submit", async (e) => {
   }
   btn.disabled = false;
   btn.textContent = "Send Report";
+});
+
+/* ═══════════════════════════════════════════════════════════════
+ *  REPORT SITE — one-click, no typing required
+ * ═══════════════════════════════════════════════════════════════ */
+document.getElementById("reportSiteBtn").addEventListener("click", async () => {
+  const btn = $("#reportSiteBtn");
+  const textEl = $("#reportSiteText");
+
+  if (btn.dataset.sent) return;
+
+  textEl.textContent = "Sending…";
+  btn.disabled = true;
+
+  let siteUrl = "N/A";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url) siteUrl = tab.url;
+  } catch {}
+
+  const detectedInfo = detected?.animeName
+    ? `${detected.animeName} EP ${detected.episode}`
+    : "Nothing detected";
+
+  try {
+    const res = await fetch("https://formspree.io/f/mbdzevrq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        message: `[SITE REPORT] Doesn't work on this site`,
+        site_url: siteUrl,
+        detected_anime: detectedInfo,
+        browser: navigator.userAgent,
+        extension_version: `v${chrome.runtime.getManifest().version}`,
+        email: "(auto report)",
+      }),
+    });
+    if (res.ok) {
+      textEl.textContent = "✅ Reported!";
+      btn.dataset.sent = "1";
+      btn.style.color = "var(--canon)";
+    } else {
+      throw new Error();
+    }
+  } catch {
+    textEl.textContent = "Failed";
+    btn.disabled = false;
+    setTimeout(() => { textEl.textContent = "Report Site"; }, 2000);
+  }
 });
