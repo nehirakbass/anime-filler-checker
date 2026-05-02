@@ -82,6 +82,23 @@ function extractTitle(html) {
 /* ── Jikan airing status + IMDB ID ───────────────── */
 
 /**
+ * Fetch from Jikan with retry on 429.
+ */
+async function jikanFetch(url, timeoutMs = 8000, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (res.status === 429) {
+      const waitMs = 2000 * (attempt + 1);
+      console.error(`  [Jikan 429] rate limited, waiting ${waitMs}ms...`);
+      await delay(waitMs);
+      continue;
+    }
+    return res;
+  }
+  throw new Error(`Jikan rate limited after ${retries} retries: ${url}`);
+}
+
+/**
  * Returns { isFinished: bool|null, imdbId: string|null }
  */
 async function checkJikanData(animeName) {
@@ -90,8 +107,11 @@ async function checkJikanData(animeName) {
     .trim();
   try {
     const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(cleanName)}&limit=1`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return { isFinished: null, imdbId: null };
+    const res = await jikanFetch(url);
+    if (!res.ok) {
+      console.error(`  [Jikan ${res.status}] ${url}`);
+      return { isFinished: null, imdbId: null };
+    }
     const json = await res.json();
     const anime = json.data?.[0];
     if (!anime) return { isFinished: null, imdbId: null };
@@ -104,9 +124,9 @@ async function checkJikanData(animeName) {
     let imdbId = null;
     try {
       await delay(JIKAN_DELAY);
-      const extRes = await fetch(
+      const extRes = await jikanFetch(
         `https://api.jikan.moe/v4/anime/${anime.mal_id}/external`,
-        { signal: AbortSignal.timeout(6000) }
+        6000
       );
       if (extRes.ok) {
         const extJson = await extRes.json();
@@ -117,11 +137,16 @@ async function checkJikanData(animeName) {
           const m = imdbEntry.url.match(/\/(tt\d+)/);
           if (m) imdbId = m[1];
         }
+      } else {
+        console.error(`  [Jikan ext ${extRes.status}] mal_id=${anime.mal_id}`);
       }
-    } catch {}
+    } catch (e) {
+      console.error(`  [Jikan ext error] ${e.message}`);
+    }
 
     return { isFinished, imdbId };
-  } catch {
+  } catch (e) {
+    console.error(`  [Jikan error] ${animeName}: ${e.message}`);
     return { isFinished: null, imdbId: null };
   }
 }
