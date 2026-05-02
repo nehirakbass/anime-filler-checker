@@ -11,6 +11,15 @@ const { getRouter } = require("stremio-addon-sdk");
 const landingTemplate = require("stremio-addon-sdk/src/landingTemplate");
 const builder = require("./lib/addon");
 
+const MAINTENANCE_STREAM = JSON.stringify({
+  streams: [{
+    name: "🚧 MAINTENANCE",
+    description: "Anime Filler Checker is temporarily under maintenance.\nPlease check back soon \u2014 animefillerchecker.com",
+    externalUrl: "https://animefillerchecker.com",
+  }],
+});
+const MAINTENANCE_SUBTITLES = JSON.stringify({ subtitles: [] });
+
 const addonInterface = builder.getInterface();
 const router = getRouter(addonInterface);
 const landingHTML = landingTemplate(addonInterface.manifest).replace(
@@ -39,17 +48,21 @@ module.exports = (req, res) => {
     return;
   }
 
+  // Maintenance mode: intercept early, serve cached static response
+  if (builder.MAINTENANCE_MODE && /\/(stream|subtitles)\//.test(strippedUrl)) {
+    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=3600");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.statusCode = 200;
+    res.end(strippedUrl.includes("/subtitles/") ? MAINTENANCE_SUBTITLES : MAINTENANCE_STREAM);
+    return;
+  }
+
   // CDN caching
   const cleanUrl2 = strippedUrl.split("?")[0];
   if (cleanUrl2.includes("/manifest.json")) {
     res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
   } else if (/\/(stream|subtitles)\//.test(cleanUrl2)) {
-    const { MAINTENANCE_MODE } = require("./lib/addon");
-    if (MAINTENANCE_MODE) {
-      res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=86400");
-    } else {
-      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
-    }
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
   }
 
   // Serve landing/configure page

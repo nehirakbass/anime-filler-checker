@@ -7,6 +7,15 @@
 const { getRouter } = require("stremio-addon-sdk");
 const builder = require("../lib/addon");
 
+const MAINTENANCE_STREAM = JSON.stringify({
+  streams: [{
+    name: "🚧 MAINTENANCE",
+    description: "Anime Filler Checker is temporarily under maintenance.\nPlease check back soon \u2014 animefillerchecker.com",
+    externalUrl: "https://animefillerchecker.com",
+  }],
+});
+const MAINTENANCE_SUBTITLES = JSON.stringify({ subtitles: [] });
+
 const addonInterface = builder.getInterface();
 const router = getRouter(addonInterface);
 
@@ -21,24 +30,22 @@ module.exports = (req, res) => {
     return;
   }
 
-  // CDN / browser caching — lets Vercel edge cache responses so cold starts
-  // don't hit upstream APIs on every request.
   const reqPath = req.url || "";
+
+  // Maintenance mode: intercept early, serve cached static response
+  if (builder.MAINTENANCE_MODE && /\/(stream|subtitles)\//.test(reqPath)) {
+    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=3600");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.statusCode = 200;
+    res.end(reqPath.includes("/subtitles/") ? MAINTENANCE_SUBTITLES : MAINTENANCE_STREAM);
+    return;
+  }
+
+  // CDN caching
   if (reqPath.includes("/manifest.json")) {
-    // Manifest rarely changes; cache for 1 hour at the edge
     res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
   } else if (/\/(stream|subtitles)\//.test(reqPath)) {
-    // Maintenance: freeze all stream/subtitle responses at the edge for 24h
-    // so the function is not invoked again for the same episode.
-    const { MAINTENANCE_MODE } = require("../lib/addon");
-    if (MAINTENANCE_MODE) {
-      res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=86400");
-    } else {
-      res.setHeader(
-        "Cache-Control",
-        "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
-      );
-    }
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
   }
 
   router(req, res, () => {
