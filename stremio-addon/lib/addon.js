@@ -158,9 +158,8 @@ async function resolveAnimeName(id) {
       cacheHit(`imdbIds:${id}`);
       return slug;
     }
-    // Not in our anime list → not an anime, reject immediately
+    // Not in local map → fall through to Cinemeta lookup below
     cacheMiss(`imdbIds:${id}`);
-    return null;
   }
   // Resolve IMDB ID via Cinemeta (Stremio's default catalog)
   const cachedName = cinemetaNameCache.get(id);
