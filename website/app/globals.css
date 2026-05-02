@@ -1592,10 +1592,6 @@ nav {
   background: rgba(91, 168, 255, 0.12);
   color: var(--anime);
 }
-.tag-maintenance {
-  background: rgba(255, 80, 80, 0.12);
-  color: #ff6b6b;
-}
 .devlog-title {
   font-size: 20px;
   font-weight: 700;

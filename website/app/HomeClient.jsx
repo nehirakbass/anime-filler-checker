@@ -132,9 +132,6 @@ export default function HomeClient() {
               <a href="https://github.com/nehirakbass/anime-filler-checker" className="btn-secondary" target="_blank" rel="noopener">
                 <GitHubIcon size={18} /> View on GitHub
               </a>
-              <a href="#dev-log" className="btn-secondary">
-                🚧 About Stremio Addon
-              </a>
             </div>
 
             {/* Interactive Demo */}
@@ -241,22 +238,6 @@ export default function HomeClient() {
             <p className="section-subtitle">Honest updates on what I&apos;m working on, what&apos;s hard, and what&apos;s next.</p>
 
             <div className="devlog-entries">
-              <article className="devlog-entry">
-                <div className="devlog-meta">
-                  <time className="devlog-date">May 2, 2026</time>
-                  <span className="devlog-tag tag-maintenance">Maintenance</span>
-                </div>
-                <h3 className="devlog-title">Stremio Addon — Temporary Maintenance</h3>
-                <div className="devlog-body">
-                  <p>
-                    The Stremio addon is temporarily paused. I&apos;ve noticed it was receiving a huge volume of requests for non-anime titles — <strong>over 5 million requests in the last 30 days</strong>, most of it wasted on titles that aren&apos;t even anime. That is insane!
-                  </p>
-                  <p>
-                    I&apos;m using this downtime to wire up a proper caching system, add <strong>negative caching</strong> for non-anime titles, and fix edge caching so the same episode request is only processed once. After it works properly it will be back again. Sorry for the delay in advance! The browser extension stays unaffected.
-                  </p>
-                </div>
-              </article>
-
               <article className="devlog-entry">
                 <div className="devlog-meta">
                   <time className="devlog-date">Apr 7, 2026</time>
