@@ -12,7 +12,8 @@
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://www.animefillerlist.com/*",
-    "https://api.jikan.moe/*"
+    "https://api.jikan.moe/*",
+    "https://formspree.io/*"
   ],
   "action": {
     "default_popup": "popup.html",
