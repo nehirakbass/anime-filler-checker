@@ -22,6 +22,9 @@ const LIB_DIR = path.join(__dirname, "../api/stremio/lib");
 const COMPLETED_PATH = path.join(LIB_DIR, "completedAnime.json");
 const SHOWLIST_PATH = path.join(LIB_DIR, "showList.json");
 const IMDBIDS_PATH = path.join(LIB_DIR, "imdbIds.json");
+// Temporary cache to avoid re-scraping AFL on Jikan failures
+const AFL_CACHE_PATH = path.join(LIB_DIR, "_afl-cache.json");
+const AFL_CACHE_MAX_AGE_MS = 23 * 60 * 60 * 1000; // 23h
 const AFL_DELAY = 600; // ms between AFL requests
 const JIKAN_DELAY = 500; // ms between Jikan requests (~2/sec, safe margin)
 
@@ -156,62 +159,79 @@ async function checkJikanData(animeName) {
 async function main() {
   if (!fs.existsSync(LIB_DIR)) fs.mkdirSync(LIB_DIR, { recursive: true });
 
-  // 1. Fetch AFL show index
-  console.log("Fetching show index from AnimeFillerList...");
-  const indexRes = await fetch(SHOWS_URL);
-  if (!indexRes.ok) {
-    console.error("Failed to fetch shows index:", indexRes.status);
-    process.exit(1);
-  }
-  const shows = extractShowLinks(await indexRes.text());
-  console.log(`Found ${shows.length} shows.\n`);
+  // 1 & 2. Scrape AFL (or load from cache if fresh)
+  let allShows, scrapedShows;
+  const cacheExists = fs.existsSync(AFL_CACHE_PATH);
+  const cacheAge = cacheExists
+    ? Date.now() - fs.statSync(AFL_CACHE_PATH).mtimeMs
+    : Infinity;
 
-  // 2. Scrape each show
-  const allShows = []; // for showList.json
-  const scrapedShows = []; // shows with episode data
-  let scraped = 0, failed = 0, empty = 0;
+  if (cacheExists && cacheAge < AFL_CACHE_MAX_AGE_MS) {
+    console.log(`Loading AFL data from cache (${Math.round(cacheAge / 60000)}m old)...`);
+    ({ allShows, scrapedShows } = JSON.parse(fs.readFileSync(AFL_CACHE_PATH, "utf8")));
+    console.log(`  ${allShows.length} shows, ${scrapedShows.length} with episodes.\n`);
+  } else {
+    // 1. Fetch AFL show index
+    console.log("Fetching show index from AnimeFillerList...");
+    const indexRes = await fetch(SHOWS_URL);
+    if (!indexRes.ok) {
+      console.error("Failed to fetch shows index:", indexRes.status);
+      process.exit(1);
+    }
+    const shows = extractShowLinks(await indexRes.text());
+    console.log(`Found ${shows.length} shows.\n`);
 
-  for (let i = 0; i < shows.length; i++) {
-    const { slug, title } = shows[i];
-    process.stdout.write(`[${i + 1}/${shows.length}] ${slug} ... `);
+    // 2. Scrape each show
+    allShows = [];
+    scrapedShows = [];
+    let scraped = 0, failed = 0, empty = 0;
 
-    try {
-      const res = await fetch(
-        `https://www.animefillerlist.com/shows/${encodeURIComponent(slug)}`
-      );
-      if (!res.ok) {
-        console.log(`SKIP (${res.status})`);
+    for (let i = 0; i < shows.length; i++) {
+      const { slug, title } = shows[i];
+      process.stdout.write(`[${i + 1}/${shows.length}] ${slug} ... `);
+
+      try {
+        const res = await fetch(
+          `https://www.animefillerlist.com/shows/${encodeURIComponent(slug)}`
+        );
+        if (!res.ok) {
+          console.log(`SKIP (${res.status})`);
+          allShows.push({ slug, title });
+          failed++;
+          await delay(AFL_DELAY);
+          continue;
+        }
+        const html = await res.text();
+        const episodes = parseEpisodes(html);
+        const showTitle = extractTitle(html) || title;
+
+        allShows.push({ slug, title: showTitle });
+
+        if (episodes.length === 0) {
+          console.log("EMPTY");
+          empty++;
+          await delay(AFL_DELAY);
+          continue;
+        }
+
+        scrapedShows.push({ slug, title: showTitle, episodes });
+        const fc = episodes.filter((e) => e.type === "filler").length;
+        console.log(`✓ ${episodes.length} eps (${fc} filler)`);
+        scraped++;
+      } catch (err) {
+        console.log(`ERROR: ${err.message}`);
         allShows.push({ slug, title });
         failed++;
-        await delay(AFL_DELAY);
-        continue;
       }
-      const html = await res.text();
-      const episodes = parseEpisodes(html);
-      const showTitle = extractTitle(html) || title;
-
-      allShows.push({ slug, title: showTitle });
-
-      if (episodes.length === 0) {
-        console.log("EMPTY");
-        empty++;
-        await delay(AFL_DELAY);
-        continue;
-      }
-
-      scrapedShows.push({ slug, title: showTitle, episodes });
-      const fc = episodes.filter((e) => e.type === "filler").length;
-      console.log(`✓ ${episodes.length} eps (${fc} filler)`);
-      scraped++;
-    } catch (err) {
-      console.log(`ERROR: ${err.message}`);
-      allShows.push({ slug, title });
-      failed++;
+      await delay(AFL_DELAY);
     }
-    await delay(AFL_DELAY);
-  }
 
-  console.log(`\nScraping done: ${scraped} scraped, ${failed} failed, ${empty} empty.`);
+    console.log(`\nScraping done: ${scraped} scraped, ${failed} failed, ${empty} empty.`);
+
+    // Save cache so Jikan step can be restarted without re-scraping AFL
+    fs.writeFileSync(AFL_CACHE_PATH, JSON.stringify({ allShows, scrapedShows }));
+    console.log(`AFL cache saved (${scrapedShows.length} shows).\n`);
+  }
 
   // 3. Check airing status via Jikan for scraped shows + collect IMDB IDs
   console.log(`\nChecking airing status via Jikan for ${scrapedShows.length} shows...`);
@@ -298,6 +318,9 @@ async function main() {
   fs.writeFileSync(COMPLETED_PATH, JSON.stringify(completedBundle));
   fs.writeFileSync(SHOWLIST_PATH, JSON.stringify(showList));
   fs.writeFileSync(IMDBIDS_PATH, JSON.stringify(imdbIds));
+
+  // Remove AFL cache — run is complete
+  if (fs.existsSync(AFL_CACHE_PATH)) fs.unlinkSync(AFL_CACHE_PATH);
 
   const completedMB = (fs.statSync(COMPLETED_PATH).size / 1024 / 1024).toFixed(2);
   const showListKB = (fs.statSync(SHOWLIST_PATH).size / 1024).toFixed(1);
