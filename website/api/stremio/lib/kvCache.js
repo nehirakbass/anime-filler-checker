@@ -62,11 +62,9 @@ async function kvSet(key, value, ttlSeconds) {
  * Check whether KV is configured (useful for logging).
  */
 function kvAvailable() {
-  return !!((\
-    process.env.UPSTASH_REDIS_REST_URL  || process.env.KV_REST_API_URL
-  ) && (
-    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-  ));
+  const url   = process.env.UPSTASH_REDIS_REST_URL  || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return !!(url && token);
 }
 
 module.exports = { kvGet, kvSet, kvAvailable };
