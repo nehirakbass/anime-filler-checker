@@ -249,7 +249,7 @@ export default function HomeClient() {
                 <h3 className="devlog-title">Stremio Addon — Temporary Maintenance</h3>
                 <div className="devlog-body">
                   <p>
-                    The Stremio addon is temporarily paused. I&apos;ve noticed it was receiving a huge volume of requests for non-anime titles — <strong>25 GB of outgoing data and spikes up to 60K requests per interval</strong> over the last 30 days. That is insane!
+                    The Stremio addon is temporarily paused. I&apos;ve noticed it was receiving a huge volume of requests for non-anime titles — <strong>over 5 million requests in the last 30 days</strong>, most of it wasted on titles that aren&apos;t even anime. That is insane!
                   </p>
                   <p>
                     I&apos;m using this downtime to wire up a proper caching system, add <strong>negative caching</strong> for non-anime titles, and fix edge caching so the same episode request is only processed once. After it works properly it will be back again. Sorry for the delay in advance! The browser extension stays unaffected.
