@@ -19,6 +19,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Restore AFL cache
+        uses: actions/cache@v4
+        with:
+          path: website/api/stremio/lib/_afl-cache.json
+          key: afl-scrape-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            afl-scrape-cache-${{ runner.os }}-
+
       - name: Run scraper
         working-directory: website
         run: node scripts/scrape-all-shows.js
