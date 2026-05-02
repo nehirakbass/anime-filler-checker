@@ -88,8 +88,12 @@ function extractTitle(html) {
  * Fetch from Jikan with retry on 429.
  */
 async function jikanFetch(url, timeoutMs = 8000, retries = 3) {
+  const headers = {
+    "User-Agent": "anime-filler-checker/1.0 (https://github.com/nehirakbass/anime-filler-checker)",
+    "Accept": "application/json",
+  };
   for (let attempt = 0; attempt < retries; attempt++) {
-    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
     if (res.status === 429) {
       const waitMs = 2000 * (attempt + 1);
       console.error(`  [Jikan 429] rate limited, waiting ${waitMs}ms...`);
