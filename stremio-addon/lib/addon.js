@@ -75,12 +75,19 @@ const TYPE_EMOJI = {
   unknown: "❓",
 };
 
+// Cache TTLs
+const KITSU_NAME_CACHE_TTL      = 1000 * 60 * 60 * 24 * 7; // 7 days
+const CINEMETA_NAME_CACHE_TTL   = 1000 * 60 * 60 * 24 * 7; // 7 days
+const ABSOLUTE_EP_CACHE_TTL     = 1000 * 60 * 60 * 24 * 7; // 7 days
+
 // Cache for Kitsu anime names
 const kitsuNameCache = new Map();
+// Cache for Cinemeta series name lookups (IMDB IDs)
+const cinemetaNameCache = new Map();
 
 async function resolveAnimeNameFromKitsu(kitsuId) {
   const cached = kitsuNameCache.get(kitsuId);
-  if (cached) return cached;
+  if (cached && Date.now() - cached.ts < KITSU_NAME_CACHE_TTL) return cached.name;
   try {
     const res = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}`);
     if (res.ok) {
@@ -89,7 +96,7 @@ async function resolveAnimeNameFromKitsu(kitsuId) {
         json.data?.attributes?.canonicalTitle ||
         json.data?.attributes?.titles?.en_jp ||
         null;
-      if (name) kitsuNameCache.set(kitsuId, name);
+      if (name) kitsuNameCache.set(kitsuId, { name, ts: Date.now() });
       return name;
     }
   } catch {}
@@ -102,13 +109,17 @@ async function resolveAnimeName(id) {
     return resolveAnimeNameFromKitsu(id.slice("kitsu:".length));
   }
   // Resolve IMDB ID via Cinemeta (Stremio's default catalog)
+  const cachedName = cinemetaNameCache.get(id);
+  if (cachedName && Date.now() - cachedName.ts < CINEMETA_NAME_CACHE_TTL) return cachedName.name;
   try {
     const res = await fetch(
       `https://v3-cinemeta.strem.io/meta/series/${encodeURIComponent(id)}.json`
     );
     if (res.ok) {
       const json = await res.json();
-      return json.meta?.name || null;
+      const name = json.meta?.name || null;
+      if (name) cinemetaNameCache.set(id, { name, ts: Date.now() });
+      return name;
     }
   } catch {}
   return null;
@@ -154,7 +165,11 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
   if (seriesId.startsWith("kitsu:")) return episode;
 
   const cacheKey = seriesId;
-  let mapping = absoluteEpCache.get(cacheKey);
+  const cachedEntry = absoluteEpCache.get(cacheKey);
+  let mapping =
+    cachedEntry && Date.now() - cachedEntry.ts < ABSOLUTE_EP_CACHE_TTL
+      ? cachedEntry.mapping
+      : null;
 
   if (!mapping) {
     try {
@@ -176,7 +191,7 @@ async function resolveAbsoluteEpisode(seriesId, season, episode) {
         mapping.set(`${v.season}:${v.episode}`, i + 1);
       });
 
-      absoluteEpCache.set(cacheKey, mapping);
+      absoluteEpCache.set(cacheKey, { mapping, ts: Date.now() });
     } catch {
       return episode; // fallback
     }
