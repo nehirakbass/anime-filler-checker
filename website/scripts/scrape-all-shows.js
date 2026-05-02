@@ -23,7 +23,7 @@ const COMPLETED_PATH = path.join(LIB_DIR, "completedAnime.json");
 const SHOWLIST_PATH = path.join(LIB_DIR, "showList.json");
 const IMDBIDS_PATH = path.join(LIB_DIR, "imdbIds.json");
 const AFL_DELAY = 600; // ms between AFL requests
-const JIKAN_DELAY = 350; // ms between Jikan requests (~3/sec)
+const JIKAN_DELAY = 500; // ms between Jikan requests (~2/sec, safe margin)
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
