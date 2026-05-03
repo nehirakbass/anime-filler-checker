@@ -337,7 +337,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         // Find next canon episode for auto-skip
         let nextCanonEp = null;
         if (ep) {
-          const skipTypes = ["filler", "mixed"];
+          const skipTypes = ["filler"];
           for (let n = episode + 1; n <= episode + 50; n++) {
             const candidate = data.episodes[n];
             if (!candidate) break; // no more episodes

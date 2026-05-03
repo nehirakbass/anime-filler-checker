@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Anime Filler Checker",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "description": "Auto-detects anime & episode, shows FILLER/CANON badge directly on the page",
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
