@@ -553,9 +553,9 @@ document.getElementById("bugForm").addEventListener("submit", async (e) => {
   } catch {}
 
   try {
-    const res = await fetch("https://formspree.io/f/mbdzevrq", {
+    const res = await fetch("https://animefillerchecker.com/api/report", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message,
         email: $("#bugEmail").value.trim() || "(not provided)",
@@ -604,9 +604,9 @@ document.getElementById("reportSiteBtn").addEventListener("click", async () => {
     : "Nothing detected";
 
   try {
-    const res = await fetch("https://formspree.io/f/mbdzevrq", {
+    const res = await fetch("https://animefillerchecker.com/api/report", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: `[SITE REPORT] Doesn't work on this site`,
         site_url: siteUrl,

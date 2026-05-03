@@ -13,7 +13,7 @@
   "host_permissions": [
     "https://www.animefillerlist.com/*",
     "https://api.jikan.moe/*",
-    "https://formspree.io/*"
+    "https://animefillerchecker.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

@@ -305,7 +305,7 @@ export default function HomeClient() {
                   btn.textContent = 'Sending...'
 
                   try {
-                    const res = await fetch('https://formspree.io/f/xaqlykwb', {
+                    const res = await fetch('/api/report', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(Object.fromEntries(new FormData(e.target)))
