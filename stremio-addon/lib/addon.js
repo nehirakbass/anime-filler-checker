@@ -63,7 +63,9 @@ const builder = new addonBuilder(manifest);
 /* ═══════════════════════════════════════════════════
  *  MAINTENANCE MODE — set to false to re-enable
  * ═══════════════════════════════════════════════════ */
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = !["false", "0", "off"].includes(
+  (process.env.MAINTENANCE_MODE ?? "true").toLowerCase()
+);
 
 const CONFIG_TYPE_MAP = {
   canon: "showCanon",
